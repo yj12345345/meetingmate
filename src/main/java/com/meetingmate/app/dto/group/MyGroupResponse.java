@@ -3,10 +3,10 @@ package com.meetingmate.app.dto.group;
 import lombok.*;
 
 @Getter
-@Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class MyGroupResponse {
-
     private Long groupId;
     private String groupName;
 }

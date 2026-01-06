@@ -1,10 +1,6 @@
 package com.meetingmate.app.controller;
 
-import com.meetingmate.app.dto.group.GroupCreateRequest;
-import com.meetingmate.app.dto.group.GroupJoinRequest;
-import com.meetingmate.app.dto.group.GroupResponse;
-import com.meetingmate.app.dto.group.JoinResponse;
-import com.meetingmate.app.dto.group.MyGroupResponse;
+import com.meetingmate.app.dto.group.*;
 import com.meetingmate.app.security.UserPrincipal;
 import com.meetingmate.app.service.GroupService;
 import lombok.RequiredArgsConstructor;
@@ -57,5 +53,15 @@ public class GroupController {
         Long userId = principal.getId();
         List<MyGroupResponse> responses = groupService.getMyGroups(userId);
         return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/{groupId}")
+    public ResponseEntity<GroupDetailResponse> getGroupDetail(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        Long userId = principal.getId();
+        GroupDetailResponse response = groupService.getGroupDetail(groupId, userId);
+        return ResponseEntity.ok(response);
     }
 }

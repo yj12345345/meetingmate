@@ -2,19 +2,18 @@ package com.meetingmate.app.service;
 
 import com.meetingmate.app.domain.group.Group;
 import com.meetingmate.app.domain.group.GroupMember;
-import com.meetingmate.app.dto.group.GroupCreateRequest;
-import com.meetingmate.app.dto.group.GroupJoinRequest;
-import com.meetingmate.app.dto.group.GroupResponse;
-import com.meetingmate.app.dto.group.JoinResponse;
-import com.meetingmate.app.dto.group.MyGroupResponse;
+import com.meetingmate.app.dto.group.*;
 import com.meetingmate.app.repository.GroupMemberRepository;
 import com.meetingmate.app.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -55,8 +54,8 @@ public class GroupService {
         groupMemberRepository.save(hostMember);
 
         return GroupResponse.builder()
-                .groupId(saved.getId())
-                .groupName(saved.getName())
+                .id(saved.getId())
+                .name(saved.getName())
                 .inviteCode(saved.getInviteCode())
                 .build();
     }
@@ -129,5 +128,29 @@ public class GroupService {
             sb.append(INVITE_CODE_CHARS.charAt(idx));
         }
         return sb.toString();
+    }
+
+    /**
+     * GroupService의 getGroupDetail
+     */
+    public GroupDetailResponse getGroupDetail(Long groupId, Long userId) {
+        // 1. groupId로 Group 조회
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(()-> new RuntimeException("모임이 존재하지 않습니다."));
+        // 2. userId가 이 그룹 멤버인지 확인
+        boolean isMember = groupMemberRepository.existsByGroup_IdAndUserId(groupId, userId);
+        if (!isMember) {
+            throw new RuntimeException("멤버만 접근 가능합니다.");
+        }
+        // 3. 멤버 수 계산
+        long memberCount = groupMemberRepository.countByGroup_Id(groupId);
+        // 4. GroupDetailResponse로 묶어서 return
+        return GroupDetailResponse.builder()
+                .groupId(group.getId())
+                .groupName(group.getName())
+                .description(group.getDescription())
+                .hostUserId(group.getHostUserId())
+                .memberCount(memberCount)
+                .build();
     }
 }
