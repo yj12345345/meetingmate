@@ -3,6 +3,8 @@ package com.meetingmate.app.service;
 import com.meetingmate.app.domain.group.Group;
 import com.meetingmate.app.domain.group.GroupMember;
 import com.meetingmate.app.dto.group.*;
+import com.meetingmate.app.exception.GroupAccessDeniedException;
+import com.meetingmate.app.exception.GroupNotFoundException;
 import com.meetingmate.app.repository.GroupMemberRepository;
 import com.meetingmate.app.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
@@ -66,7 +68,7 @@ public class GroupService {
     @Transactional
     public JoinResponse joinGroup(GroupJoinRequest request, Long userId) {
         Group group = groupRepository.findByInviteCode(request.getInviteCode())
-                .orElseThrow(() -> new RuntimeException("초대코드가 올바르지 않습니다."));
+                .orElseThrow(() -> new GroupNotFoundException(userId));
 
         // 이미 가입한 경우
         boolean alreadyJoined =
@@ -136,11 +138,11 @@ public class GroupService {
     public GroupDetailResponse getGroupDetail(Long groupId, Long userId) {
         // 1. groupId로 Group 조회
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(()-> new RuntimeException("모임이 존재하지 않습니다."));
+                .orElseThrow(()-> new GroupNotFoundException(groupId));
         // 2. userId가 이 그룹 멤버인지 확인
         boolean isMember = groupMemberRepository.existsByGroup_IdAndUserId(groupId, userId);
         if (!isMember) {
-            throw new RuntimeException("멤버만 접근 가능합니다.");
+            throw new GroupAccessDeniedException(groupId);
         }
         // 3. 멤버 수 계산
         long memberCount = groupMemberRepository.countByGroup_Id(groupId);
