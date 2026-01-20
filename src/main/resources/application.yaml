@@ -50,3 +50,14 @@ logging:
   level:
     org.springframework.security: DEBUG
     org.springframework.security.oauth2: DEBUG
+
+
+
+    app:
+      jwt:
+        issuer: meetingmate
+        secret: "CHANGE_ME_TO_32+_BYTES_SECRET_CHANGE_ME_123456"
+        access-exp-min: 30
+        refresh-exp-day: 14
+      oauth2:
+        dev-callback: "http://localhost:8080/oauth2/callback"
