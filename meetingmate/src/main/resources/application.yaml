@@ -1,0 +1,51 @@
+spring:
+
+  application:
+    name: meetingmate
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:dummy-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:dummy-google-client-secret}
+            scope:
+              - profile
+              - email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-name: Google
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/meetingmate
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.MySQLDialect
+
+server:
+  forward-headers-strategy: framework
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    root: INFO
+
+jwt:
+  secret: ${JWT_SECRET:CHANGE_ME_TO_32+_BYTES_SECRET_CHANGE_ME_123456}
+  access-token-expiry-ms: ${JWT_ACCESS_TOKEN_EXPIRY_MS:3600000}
+
+app:
+  frontend-redirect-url: ${APP_FRONTEND_REDIRECT_URL:http://localhost:5173/oauth/callback}
+
+meetingmate:
+  openai-api-key: ${MEETINGMATE_OPENAI_API_KEY:}
+
+openai:
+  model: ${OPENAI_MODEL:gpt-4o-mini}
