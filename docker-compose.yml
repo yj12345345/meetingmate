@@ -18,7 +18,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./meetingmate
     container_name: meetingmate-backend
     restart: always
     depends_on:
@@ -33,7 +33,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend/meetingmate_frontend
+      context: ./meetingmate_front/meetingmate-frontend
     container_name: meetingmate-frontend
     restart: always
     depends_on:
