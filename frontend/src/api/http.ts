@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const http = axios.create({
-    baseURL: "http://54.206.113.147",
+    // Use same-origin in production and rely on nginx reverse proxy.
+    baseURL: "/",
 });
 
 http.interceptors.request.use((config) => {

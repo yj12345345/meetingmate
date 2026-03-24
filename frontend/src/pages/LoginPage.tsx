@@ -27,6 +27,7 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const oauthBaseUrl = window.location.origin;
 
     // 이메일 로그인
     const handleEmailLogin = async () => {
@@ -55,15 +56,13 @@ export default function LoginPage() {
     // 카카오 로그인
     const handleKakaoLogin = () => {
         savePostLoginRedirect(redirectTarget);
-        window.location.href =
-            "https://meetingmate.duckdns.org/oauth2/authorization/kakao";
+        window.location.href = `${oauthBaseUrl}/oauth2/authorization/kakao`;
     };
 
     // 구글 로그인
     const handleGoogleLogin = () => {
         savePostLoginRedirect(redirectTarget);
-        window.location.href =
-            "https://meetingmate.duckdns.org/oauth2/authorization/google";
+        window.location.href = `${oauthBaseUrl}/oauth2/authorization/google`;
     };
 
     return (
