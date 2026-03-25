@@ -99,13 +99,21 @@ const buildPlaceKey = (item: Pick<KeywordRecommendation, "category" | "name" | "
 
 const uniqueQueries = (queries: Array<string | undefined>) =>
     queries
-        .map((query) => (query || "").trim())
+        .map((query) => sanitizeKakaoQuery((query || "").trim()))
         .filter((query, index, array): query is string => Boolean(query) && array.indexOf(query) === index);
 
 const buildMapQuery = (placeName: string, address: string, areaHint: string) => {
     const addressHint = address.split(" ").slice(0, 3).join(" ").trim();
     return [placeName, areaHint || addressHint].filter(Boolean).join(" ").trim();
 };
+
+const sanitizeKakaoQuery = (query: string) =>
+    query
+        // Remove punctuation/noise that commonly causes low-quality keyword searches.
+        .replace(/[^\w\u3131-\u318E\uAC00-\uD7A3\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 45);
 
 const hasNameTokenOverlap = (sourceName: string, targetName: string) => {
     const tokens = tokenizeText(sourceName);
@@ -578,8 +586,13 @@ const resolveAreaCenter = async (
 
     const keywordSearch = (query: string, options?: Record<string, unknown>) =>
         new Promise<KakaoKeywordResult[]>((resolve) => {
+            const sanitizedQuery = sanitizeKakaoQuery(query);
+            if (!sanitizedQuery) {
+                resolve([]);
+                return;
+            }
             placesService.keywordSearch(
-                query,
+                sanitizedQuery,
                 (results: KakaoKeywordResult[], status: string) => {
                     if (status === kakao.maps.services.Status.OK && Array.isArray(results)) {
                         resolve(results);
@@ -636,8 +649,13 @@ const verifyCategoriesWithKakao = async (
 
     const keywordSearch = (query: string, options?: Record<string, unknown>) =>
         new Promise<KakaoKeywordResult[]>((resolve) => {
+            const sanitizedQuery = sanitizeKakaoQuery(query);
+            if (!sanitizedQuery) {
+                resolve([]);
+                return;
+            }
             placesService.keywordSearch(
-                query,
+                sanitizedQuery,
                 (results: KakaoKeywordResult[], status: string) => {
                     if (status === kakao.maps.services.Status.OK && Array.isArray(results)) {
                         resolve(results);
