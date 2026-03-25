@@ -12,9 +12,16 @@ const REQUEST_EXAMPLES = [
 
 const MEETING_PRESETS = ["친구 모임", "연인 데이트", "직장 동료 모임", "가족 나들이", "혼자 여행"];
 const MOOD_PRESETS = ["조용한", "활기찬", "감성적인", "가성비 좋은", "여유로운", "로컬 느낌"];
+const DISTANCE_PRESETS = [1.5, 2.5, 3.5, 5, 7];
+const MIN_DISTANCE_KM = 1;
+const MAX_DISTANCE_KM = 10;
+const DISTANCE_STEP_KM = 0.5;
+const DEFAULT_DISTANCE_KM = 3.5;
 
 const appendLine = (current: string, next: string) =>
     current.trim() ? `${current.trim()}\n${next}` : next;
+
+const formatDistance = (value: number) => (Number.isInteger(value) ? `${value}` : value.toFixed(1));
 
 export default function SelectPage() {
     const navigate = useNavigate();
@@ -25,6 +32,7 @@ export default function SelectPage() {
     const [mainRequest, setMainRequest] = useState("");
     const [extraRequest, setExtraRequest] = useState("");
     const [avoidKeywords, setAvoidKeywords] = useState("");
+    const [maxDistanceKm, setMaxDistanceKm] = useState(DEFAULT_DISTANCE_KM);
 
     const handleSubmit = () => {
         const planSegments = [
@@ -46,9 +54,10 @@ export default function SelectPage() {
         if (mood.trim()) searchParams.set("mood", mood.trim());
         if (location.trim()) searchParams.set("location", location.trim());
         if (planHint.trim()) searchParams.set("planHint", planHint.trim());
+        searchParams.set("maxDistanceKm", String(maxDistanceKm));
 
         navigate(`/recommend?${searchParams.toString()}`, {
-            state: { meetingType, mood, location, planHint },
+            state: { meetingType, mood, location, planHint, maxDistanceKm },
         });
     };
 
@@ -105,6 +114,50 @@ export default function SelectPage() {
                                     placeholder="예) 신촌, 잠실, 성수, 청주 성안길, 강릉 안목"
                                     className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
                                 />
+                                <p className="mt-2 text-xs text-slate-500">
+                                    입력한 지역 중심으로 추천 반경을 제한할 수 있습니다.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="mb-2 block text-sm font-semibold text-slate-800">
+                                    추천 거리 범위
+                                </label>
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm font-semibold text-slate-900">
+                                            최대 {formatDistance(maxDistanceKm)}km
+                                        </p>
+                                        <span className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-600">
+                                            지역 중심 반경
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min={MIN_DISTANCE_KM}
+                                        max={MAX_DISTANCE_KM}
+                                        step={DISTANCE_STEP_KM}
+                                        value={maxDistanceKm}
+                                        onChange={(event) => setMaxDistanceKm(Number(event.target.value))}
+                                        className="mt-3 w-full accent-slate-900"
+                                    />
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {DISTANCE_PRESETS.map((preset) => (
+                                            <button
+                                                key={preset}
+                                                type="button"
+                                                onClick={() => setMaxDistanceKm(preset)}
+                                                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                                                    maxDistanceKm === preset
+                                                        ? "bg-slate-900 text-white"
+                                                        : "bg-white text-slate-700 hover:bg-slate-100"
+                                                }`}
+                                            >
+                                                {formatDistance(preset)}km
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="md:col-span-2">

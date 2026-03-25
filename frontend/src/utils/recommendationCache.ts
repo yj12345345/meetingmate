@@ -11,6 +11,7 @@ type RecommendationCacheQuery = {
     mood?: string;
     location?: string;
     planHint?: string;
+    maxDistanceKm?: number;
 };
 
 export type RecommendationCacheEntry = {
@@ -31,6 +32,8 @@ const getUserScope = () => {
 };
 
 const normalizePart = (value?: string) => (value || "").trim();
+const normalizeDistancePart = (value?: number) =>
+    Number.isFinite(value) ? String(Math.round((value || 0) * 10) / 10) : "";
 
 export const buildRecommendationCacheKey = (query: RecommendationCacheQuery) =>
     [
@@ -41,6 +44,7 @@ export const buildRecommendationCacheKey = (query: RecommendationCacheQuery) =>
         normalizePart(query.mood),
         normalizePart(query.location),
         normalizePart(query.planHint),
+        normalizeDistancePart(query.maxDistanceKm),
     ].join("::");
 
 export const loadRecommendationCache = (
