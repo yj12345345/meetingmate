@@ -38,11 +38,24 @@ const CATEGORY_BADGE: Record<string, string> = {
     ACTIVITY: "bg-sky-100 text-sky-700",
 };
 
+const CATEGORY_PIN_COLOR: Record<string, string> = {
+    RESTAURANT: "#f43f5e",
+    CAFE: "#f59e0b",
+    BAR: "#8b5cf6",
+    PC_ROOM: "#4f46e5",
+    KARAOKE: "#d946ef",
+    SHOPPING: "#10b981",
+    ACTIVITY: "#0ea5e9",
+};
+
 const CATEGORY_PLACE_TARGET = 3;
 const MATCH_THRESHOLD = 10;
 const MAX_KAKAO_QUERY_LENGTH = 45;
 const MAX_REQUEST_PREVIEW_LENGTH = 72;
 const MAX_CHIP_LENGTH = 28;
+const MIN_DISTANCE_KM = 1;
+const MAX_DISTANCE_KM = 10;
+const DEFAULT_DISTANCE_KM = 3.5;
 
 const formatRecommendationSource = (source: string) => {
     if (source === "AI") return "AI";
@@ -126,8 +139,37 @@ const compactText = (value: string, maxLength: number) => {
     return `${normalized.slice(0, maxLength - 1)}…`;
 };
 
+const clampDistanceKm = (value: number) =>
+    Math.max(MIN_DISTANCE_KM, Math.min(MAX_DISTANCE_KM, value));
+
+const parseDistanceKm = (
+    value: string | number | null | undefined,
+    fallback = DEFAULT_DISTANCE_KM,
+) => {
+    const numeric = typeof value === "number" ? value : Number(value);
+    if (!Number.isFinite(numeric)) {
+        return clampDistanceKm(fallback);
+    }
+    return clampDistanceKm(Math.round(numeric * 10) / 10);
+};
+
+const formatDistanceKm = (value: number) => (Number.isInteger(value) ? `${value}` : value.toFixed(1));
+
 const AREA_SUFFIX_PATTERN = /^(?:[가-힣A-Za-z0-9]+)(역|동|구|시|군|읍|면|리)$/;
 const AREA_TRAILING_MARKERS = ["에서", "근처", "근처에서", "주변", "주변에서", "인근", "인근에서", "일대", "일대에서", "쪽", "쪽에서", "부근", "부근에서"];
+const GENERIC_AREA_HINTS = new Set([
+    "근처",
+    "주변",
+    "인근",
+    "일대",
+    "부근",
+    "여기",
+    "저기",
+    "그근처",
+    "근방",
+    "주위",
+    "지역",
+]);
 
 const extractAreaFromText = (text: string) => {
     const normalized = text
@@ -172,13 +214,22 @@ const extractAreaFromText = (text: string) => {
 };
 
 const resolveAreaHint = (preferredLocation: string, keyword: string, planHint: string) => {
-    const explicit = sanitizeKakaoQuery(preferredLocation);
+    const normalizeAreaCandidate = (value: string) => {
+        const sanitized = sanitizeKakaoQuery(value);
+        if (!sanitized) {
+            return "";
+        }
+        const normalized = sanitized.replace(/\s+/g, "").toLowerCase();
+        return GENERIC_AREA_HINTS.has(normalized) ? "" : sanitized;
+    };
+
+    const explicit = normalizeAreaCandidate(preferredLocation);
     if (explicit) return explicit;
 
-    const fromKeyword = sanitizeKakaoQuery(extractAreaFromText(keyword));
+    const fromKeyword = normalizeAreaCandidate(extractAreaFromText(keyword));
     if (fromKeyword) return fromKeyword;
 
-    const fromPlanHint = sanitizeKakaoQuery(extractAreaFromText(planHint));
+    const fromPlanHint = normalizeAreaCandidate(extractAreaFromText(planHint));
     if (fromPlanHint) return fromPlanHint;
 
     return "";
@@ -456,6 +507,7 @@ type RouteState = {
     mood?: string;
     location?: string;
     planHint?: string;
+    maxDistanceKm?: number;
 };
 
 type KakaoKeywordResult = {
@@ -486,6 +538,7 @@ type AreaCenter = {
     x: number;
     y: number;
     radius: number;
+    maxDistance: number;
 };
 
 const toRadians = (value: number) => (value * Math.PI) / 180;
@@ -504,17 +557,73 @@ const distanceInMeters = (
     return 2 * earthRadius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-const getAreaRadius = (areaHint: string) => {
+const getAreaRadius = (areaHint: string, maxDistanceMeters: number) => {
     const normalized = areaHint.replace(/\s+/g, "");
-    if (!normalized) return 5000;
-    if (normalized.includes("서울") || normalized.includes("부산") || normalized.includes("대구")) return 7000;
-    if (normalized.includes("구") || normalized.includes("시")) return 4500;
-    if (normalized.includes("역") || normalized.includes("동")) return 2400;
-    return 3000;
+    const fallbackRadius = !normalized
+        ? 3500
+        : normalized.includes("서울") || normalized.includes("부산") || normalized.includes("대구")
+            ? 5000
+            : normalized.includes("구") || normalized.includes("시")
+                ? 3500
+                : normalized.includes("역") || normalized.includes("동")
+                    ? 2200
+                    : 2800;
+    const normalizedLimit = Number.isFinite(maxDistanceMeters) ? maxDistanceMeters : fallbackRadius;
+    return Math.max(1000, Math.min(12000, Math.round(normalizedLimit)));
 };
 
-const getMaxAllowedDistance = (areaCenter: AreaCenter) =>
-    Math.max(1500, Math.min(areaCenter.radius * 1.15, areaCenter.radius + 900));
+const getMaxAllowedDistance = (areaCenter: AreaCenter) => areaCenter.maxDistance;
+
+const getCategoryPinColor = (categoryKey: RecommendationCategoryKey | undefined) =>
+    CATEGORY_PIN_COLOR[categoryKey || ""] || "#2563eb";
+
+const createMarkerImage = (kakao: any, color: string) => {
+    const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="38" height="50" viewBox="0 0 38 50">
+            <path fill="${color}" d="M19 0C8.507 0 0 8.507 0 19c0 14.25 16.15 29.672 18.02 31.418a1.5 1.5 0 0 0 1.96 0C21.85 48.672 38 33.25 38 19 38 8.507 29.493 0 19 0z"/>
+            <circle cx="19" cy="19" r="8.5" fill="#ffffff"/>
+        </svg>
+    `;
+    const imageSrc = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    const imageSize = new kakao.maps.Size(38, 50);
+    const imageOption = { offset: new kakao.maps.Point(19, 50) };
+    return new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
+};
+
+const createCategoryPinOverlayContent = (color: string, label: string) => {
+    const wrapper = document.createElement("div");
+    wrapper.style.display = "flex";
+    wrapper.style.flexDirection = "column";
+    wrapper.style.alignItems = "center";
+    wrapper.style.cursor = "pointer";
+    wrapper.style.userSelect = "none";
+
+    const dot = document.createElement("span");
+    dot.style.display = "block";
+    dot.style.width = "18px";
+    dot.style.height = "18px";
+    dot.style.borderRadius = "999px";
+    dot.style.border = "2px solid #ffffff";
+    dot.style.background = color;
+    dot.style.boxShadow = "0 4px 10px rgba(15, 23, 42, 0.25)";
+
+    const tail = document.createElement("span");
+    tail.style.display = "block";
+    tail.style.width = "0";
+    tail.style.height = "0";
+    tail.style.borderLeft = "5px solid transparent";
+    tail.style.borderRight = "5px solid transparent";
+    tail.style.borderTop = `9px solid ${color}`;
+    tail.style.marginTop = "-1px";
+    tail.style.filter = "drop-shadow(0 3px 6px rgba(15, 23, 42, 0.2))";
+
+    wrapper.append(dot, tail);
+    wrapper.title = label;
+    wrapper.setAttribute("role", "button");
+    wrapper.setAttribute("aria-label", label);
+    wrapper.tabIndex = 0;
+    return wrapper;
+};
 
 const scoreKeywordResult = (
     item: KeywordRecommendation,
@@ -651,6 +760,7 @@ const resolveAreaCenter = async (
     placesService: any,
     geocoder: any,
     areaHint: string,
+    maxDistanceMeters: number,
 ): Promise<AreaCenter | null> => {
     if (!areaHint.trim()) {
         return null;
@@ -687,12 +797,14 @@ const resolveAreaCenter = async (
             });
         });
 
+    const radius = getAreaRadius(areaHint, maxDistanceMeters);
     const areaResult = (await keywordSearch(areaHint, { size: 3 }))[0];
     if (areaResult?.x && areaResult?.y) {
         return {
             x: Number(areaResult.x),
             y: Number(areaResult.y),
-            radius: getAreaRadius(areaHint),
+            radius,
+            maxDistance: radius,
         };
     }
 
@@ -701,7 +813,8 @@ const resolveAreaCenter = async (
         return {
             x: Number(addressResult.x),
             y: Number(addressResult.y),
-            radius: getAreaRadius(areaHint),
+            radius,
+            maxDistance: radius,
         };
     }
 
@@ -713,11 +826,12 @@ const verifyCategoriesWithKakao = async (
     areaHint: string,
     appKey: string,
     planHint: string,
+    maxDistanceMeters: number,
 ): Promise<VerificationBundle> => {
     const kakao = await ensureKakaoServices(appKey);
     const placesService = new kakao.maps.services.Places();
     const geocoder = new kakao.maps.services.Geocoder();
-    const areaCenter = await resolveAreaCenter(kakao, placesService, geocoder, areaHint);
+    const areaCenter = await resolveAreaCenter(kakao, placesService, geocoder, areaHint, maxDistanceMeters);
 
     const keywordSearch = (query: string, options?: Record<string, unknown>) =>
         new Promise<KakaoKeywordResult[]>((resolve) => {
@@ -959,6 +1073,14 @@ export default function ResultPage() {
     const mood = searchParams.get("mood")?.trim() || routeState.mood || "";
     const preferredLocation = searchParams.get("location")?.trim() || routeState.location || "";
     const planHint = searchParams.get("planHint")?.trim() || routeState.planHint || "";
+    const maxDistanceKm = useMemo(
+        () => parseDistanceKm(searchParams.get("maxDistanceKm"), routeState.maxDistanceKm),
+        [searchParams, routeState.maxDistanceKm],
+    );
+    const maxDistanceMeters = useMemo(
+        () => Math.round(maxDistanceKm * 1000),
+        [maxDistanceKm],
+    );
     const areaHint = useMemo(
         () => resolveAreaHint(preferredLocation, keyword, planHint),
         [preferredLocation, keyword, planHint],
@@ -976,8 +1098,8 @@ export default function ResultPage() {
     );
 
     const cacheKey = useMemo(
-        () => buildRecommendationCacheKey(requestParams),
-        [requestParams],
+        () => buildRecommendationCacheKey({ ...requestParams, maxDistanceKm }),
+        [maxDistanceKm, requestParams],
     );
 
     const initialCache = useMemo(
@@ -1016,19 +1138,63 @@ export default function ResultPage() {
         [visibleCategories, selectedPlaces],
     );
 
-    const mapPlaces = useMemo(() => {
-        if (selectedPlaceList.length > 0) {
-            return selectedPlaceList;
+    const mapPlaceCandidates = useMemo(() => {
+        const selectedEntries = visibleCategories
+            .map((category) => {
+                const selected = selectedPlaces[category.key];
+                if (!selected) {
+                    return null;
+                }
+                return {
+                    item: selected,
+                    categoryKey: category.key,
+                };
+            })
+            .filter(
+                (
+                    entry,
+                ): entry is {
+                    item: KeywordRecommendation;
+                    categoryKey: RecommendationCategoryKey;
+                } => Boolean(entry),
+            );
+
+        if (selectedEntries.length > 0) {
+            return selectedEntries;
         }
 
-        return visibleCategories.flatMap((category) => category.places.slice(0, 1));
-    }, [visibleCategories, selectedPlaceList]);
+        return visibleCategories
+            .map((category) => {
+                const first = category.places[0];
+                if (!first) {
+                    return null;
+                }
+                return {
+                    item: first,
+                    categoryKey: category.key,
+                };
+            })
+            .filter(
+                (
+                    entry,
+                ): entry is {
+                    item: KeywordRecommendation;
+                    categoryKey: RecommendationCategoryKey;
+                } => Boolean(entry),
+            );
+    }, [visibleCategories, selectedPlaces]);
+
+    const mapPlaces = useMemo(
+        () => mapPlaceCandidates.map((entry) => entry.item),
+        [mapPlaceCandidates],
+    );
 
     const mappedPlaceEntries = useMemo(
         () =>
-            mapPlaces
-                .map((item) => ({
+            mapPlaceCandidates
+                .map(({ item, categoryKey }) => ({
                     item,
+                    categoryKey,
                     resolved: resolvedPlaces[buildPlaceKey(item)],
                 }))
                 .filter(
@@ -1036,15 +1202,24 @@ export default function ResultPage() {
                         entry,
                     ): entry is {
                         item: KeywordRecommendation;
+                        categoryKey: RecommendationCategoryKey;
                         resolved: ResolvedKakaoPlace;
                     } => Boolean(entry.resolved),
                 ),
-        [mapPlaces, resolvedPlaces],
+        [mapPlaceCandidates, resolvedPlaces],
     );
 
     const hasRecommendations = visibleCategories.length > 0;
     const totalPlaces = useMemo(
         () => visibleCategories.reduce((sum, category) => sum + category.places.length, 0),
+        [visibleCategories],
+    );
+    const mapLegendCategories = useMemo(
+        () =>
+            visibleCategories.map((category) => ({
+                key: category.key,
+                title: category.title || formatCategoryTitle(category.key),
+            })),
         [visibleCategories],
     );
     const meetingSummary = [meetingType || "모임", mood, keyword || "지역"]
@@ -1054,6 +1229,7 @@ export default function ResultPage() {
     const requestPreview = compactText(requestText, MAX_REQUEST_PREVIEW_LENGTH);
     const headlineTitle = `${areaHint || compactText(keyword, 16) || "입력 조건"} 기준 실제 장소 추천`;
     const keywordChip = compactText(areaHint || keyword || "지역", MAX_CHIP_LENGTH);
+    const distanceChip = `${formatDistanceKm(maxDistanceKm)}km 이내`;
 
     useEffect(() => {
         if (!keyword) {
@@ -1109,6 +1285,7 @@ export default function ResultPage() {
                     areaHint,
                     appKey,
                     planHint,
+                    maxDistanceMeters,
                 );
 
                 if (!active) {
@@ -1183,7 +1360,7 @@ export default function ResultPage() {
         return () => {
             active = false;
         };
-    }, [areaHint, cacheKey, keyword, refreshNonce, requestParams, planHint]);
+    }, [areaHint, cacheKey, keyword, maxDistanceMeters, refreshNonce, requestParams, planHint]);
 
     useEffect(() => {
         if (!hasRecommendations) {
@@ -1235,7 +1412,13 @@ export default function ResultPage() {
 
                 const placesService = new kakao.maps.services.Places();
                 const geocoder = new kakao.maps.services.Geocoder();
-                const areaCenter = await resolveAreaCenter(kakao, placesService, geocoder, areaHint);
+                const areaCenter = await resolveAreaCenter(
+                    kakao,
+                    placesService,
+                    geocoder,
+                    areaHint,
+                    maxDistanceMeters,
+                );
 
                 if (cancelled || !mapRef.current) {
                     return;
@@ -1248,6 +1431,19 @@ export default function ResultPage() {
                     level: 6,
                 });
                 const bounds = new kakao.maps.LatLngBounds();
+                const markerImageCache = new Map<string, any>();
+                let activeInfoWindow: any | null = null;
+                const closeActiveInfoWindow = () => {
+                    if (activeInfoWindow) {
+                        activeInfoWindow.close();
+                        activeInfoWindow = null;
+                    }
+                };
+
+                kakao.maps.event.addListener(map, "click", () => {
+                    closeActiveInfoWindow();
+                });
+
                 const entriesForMap = areaCenter
                     ? mappedPlaceEntries.filter(({ resolved }) => {
                         const distance = distanceInMeters(
@@ -1261,16 +1457,37 @@ export default function ResultPage() {
                     : mappedPlaceEntries;
                 const finalEntries = entriesForMap.length > 0 ? entriesForMap : mappedPlaceEntries;
 
-                finalEntries.forEach(({ item, resolved }) => {
+                finalEntries.forEach(({ item, categoryKey, resolved }) => {
                     const position = new kakao.maps.LatLng(resolved.lat, resolved.lng);
+                    const markerColor = getCategoryPinColor(categoryKey);
+                    if (!markerImageCache.has(markerColor)) {
+                        markerImageCache.set(markerColor, createMarkerImage(kakao, markerColor));
+                    }
                     const marker = new kakao.maps.Marker({
                         map,
                         position,
+                        image: markerImageCache.get(markerColor),
                     });
+                    if (typeof marker.setOpacity === "function") {
+                        marker.setOpacity(0);
+                    }
+
+                    const overlayContent = createCategoryPinOverlayContent(
+                        markerColor,
+                        `${formatCategoryTitle(categoryKey)} · ${resolved.displayName}`,
+                    );
+                    const markerOverlay = new kakao.maps.CustomOverlay({
+                        position,
+                        content: overlayContent,
+                        xAnchor: 0.5,
+                        yAnchor: 1,
+                    });
+                    markerOverlay.setMap(map);
 
                     bounds.extend(position);
 
                     const infoWindow = new kakao.maps.InfoWindow({
+                        removable: true,
                         content: `
                           <div style="padding:14px 16px;max-width:280px;line-height:1.6;">
                             <strong style="display:block;margin-bottom:6px;font-size:15px;">${escapeHtml(resolved.displayName)}</strong>
@@ -1290,8 +1507,29 @@ export default function ResultPage() {
                         `,
                     });
 
-                    kakao.maps.event.addListener(marker, "click", () => {
+                    const toggleInfoWindow = () => {
+                        if (activeInfoWindow === infoWindow) {
+                            closeActiveInfoWindow();
+                            return false;
+                        }
+                        closeActiveInfoWindow();
                         infoWindow.open(map, marker);
+                        activeInfoWindow = infoWindow;
+                        return true;
+                    };
+
+                    kakao.maps.event.addListener(marker, "click", toggleInfoWindow);
+                    overlayContent.addEventListener("click", (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        toggleInfoWindow();
+                    });
+                    overlayContent.addEventListener("keydown", (event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            toggleInfoWindow();
+                        }
                     });
                 });
 
@@ -1310,7 +1548,9 @@ export default function ResultPage() {
                     warnings.push(`선택한 장소 ${missingCount}건은 카카오맵 등록 정보를 찾지 못해 지도에서 제외했습니다.`);
                 }
                 if (outOfAreaCount > 0 && areaHint) {
-                    warnings.push(`${areaHint} 기준 거리 조건을 벗어난 장소 ${outOfAreaCount}건은 지도에서 제외했습니다.`);
+                    warnings.push(
+                        `${areaHint} 중심 ${formatDistanceKm(maxDistanceKm)}km 범위를 벗어난 장소 ${outOfAreaCount}건은 지도에서 제외했습니다.`,
+                    );
                 }
                 if (warnings.length > 0) {
                     setMapWarning(warnings.join(" "));
@@ -1327,7 +1567,7 @@ export default function ResultPage() {
         return () => {
             cancelled = true;
         };
-    }, [areaHint, hasRecommendations, mapPlaces.length, mappedPlaceEntries]);
+    }, [areaHint, hasRecommendations, mapPlaces.length, mappedPlaceEntries, maxDistanceKm, maxDistanceMeters]);
 
     const handleSelectPlace = (categoryKey: RecommendationCategoryKey, item: KeywordRecommendation) => {
         setSelectedPlaces((current) => ({
@@ -1419,6 +1659,9 @@ export default function ResultPage() {
                                 )}
                                 <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
                                     {keywordChip}
+                                </span>
+                                <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
+                                    {distanceChip}
                                 </span>
                             </div>
                         </div>
@@ -1626,8 +1869,25 @@ export default function ResultPage() {
                                 선택한 장소를 지도에서 바로 확인
                             </h3>
                             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500">
-                                핀을 누르면 카카오맵 상세 보기가 열립니다. 지도에는 선택한 장소와 각 카테고리 대표 후보를 우선 표시합니다.
+                                핀을 누르면 카카오맵 상세 보기가 열립니다. 지도에는 선택한 장소와 각 카테고리 대표 후보를 우선 표시하고,
+                                {` ${formatDistanceKm(maxDistanceKm)}km 범위 내 장소만 보여줍니다.`}
                             </p>
+                            {mapLegendCategories.length > 0 && (
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    {mapLegendCategories.map((category) => (
+                                        <span
+                                            key={`legend-${category.key}`}
+                                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700"
+                                        >
+                                            <span
+                                                className="h-2.5 w-2.5 rounded-full"
+                                                style={{ backgroundColor: getCategoryPinColor(category.key) }}
+                                            />
+                                            {category.title}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
 
                             <div
                                 ref={mapRef}

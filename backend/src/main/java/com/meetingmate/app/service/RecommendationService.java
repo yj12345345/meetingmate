@@ -21,7 +21,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,11 @@ public class RecommendationService {
     private static final int CATEGORY_PLACE_TARGET = 5;
     private static final List<String> DEFAULT_CATEGORY_ORDER = List.of("RESTAURANT", "CAFE", "ACTIVITY");
     private static final List<String> CATEGORY_ORDER = List.of("PC_ROOM", "RESTAURANT", "CAFE", "BAR", "KARAOKE", "SHOPPING", "ACTIVITY");
+    private static final Set<String> GENERIC_AREA_HINTS = Set.of(
+            "근처", "주변", "인근", "일대", "부근", "여기", "저기", "그근처", "근방", "주위", "지역"
+    );
+    private static final Pattern INLINE_AREA_MARKER_PATTERN = Pattern.compile("([가-힣A-Za-z0-9]{2,12})(?:에서|근처|주변|인근|일대|부근|쪽)");
+    private static final Pattern AREA_SUFFIX_PATTERN = Pattern.compile("([가-힣A-Za-z0-9]{2,12}(?:역|동|구|시|군|읍|면|리))");
     private static final Map<String, String> CATEGORY_TITLES = Map.of(
             "RESTAURANT", "식당",
             "CAFE", "카페",
@@ -91,7 +99,7 @@ public class RecommendationService {
             throw new IllegalArgumentException("keyword는 필수입니다.");
         }
 
-        String area = firstNonBlank(location, keyword, normalizedKeyword);
+        String area = resolveAreaForPrompt(location, keyword, planHint, normalizedKeyword);
         List<String> requestedCategories = resolveRequestedCategories(planHint);
         List<PlaceCandidate> dbMatches =
                 placeCandidateRepository.findTop5ByNameContainingIgnoreCaseOrderByIdDesc(normalizedKeyword);
@@ -131,7 +139,7 @@ public class RecommendationService {
 
     public SelectedRouteRecommendResult recommendRoutesFromSelections(SelectedRouteRecommendRequest request) {
         String keyword = firstNonBlank(request.getKeyword(), request.getLocation(), request.getMood(), request.getMeetingType());
-        String area = firstNonBlank(request.getLocation(), request.getKeyword(), keyword);
+        String area = resolveAreaForPrompt(request.getLocation(), request.getKeyword(), request.getPlanHint(), keyword);
         List<KeywordRecommendResponse> selectedPlaces = normalizeSelectedPlaces(
                 request.getSelectedPlaces(),
                 keyword,
@@ -238,6 +246,9 @@ public class RecommendationService {
                 18. If a requested category key is SHOPPING, return only real shopping places such as malls, department stores, select shops, bookstores, markets, or shopping streets. Do not replace it with cafes or generic activities.
                 19. Routes must reuse only venues already present in categories. Do not create new venues inside routes.
                 20. All explanatory text should be natural Korean, concise, and free of awkward line breaks.
+                21. Treat Preferred area as a hard geographic anchor. Keep all venues inside that area or immediately adjacent neighborhoods (walk/taxi short distance).
+                22. Never jump to a different city/province. For example, if the area is 성수/신촌/잠실, do not output venues from 김천/대구/부산 or other far cities.
+                23. If area confidence is low, return fewer venues instead of filling with distant guesses.
                 """.formatted(
                 keyword,
                 valueOrDefault(meetingType, "미정"),
@@ -1216,6 +1227,91 @@ public class RecommendationService {
             parts.add(mood.trim());
         }
         return parts.isEmpty() ? "입력한 조건" : String.join(" / ", parts);
+    }
+
+    private String resolveAreaForPrompt(String location, String keyword, String planHint, String fallback) {
+        String explicit = sanitizeAreaHint(location);
+        if (!explicit.isBlank()) {
+            return explicit;
+        }
+
+        String fromKeyword = sanitizeAreaHint(extractAreaTokenFromText(keyword));
+        if (!fromKeyword.isBlank()) {
+            return fromKeyword;
+        }
+
+        String labeledHint = firstNonBlank(
+                extractLabeledHint(planHint, "메인 요청"),
+                extractLabeledHint(planHint, "추가 요청"),
+                extractLabeledHint(planHint, "추가로 찾고 싶은 것"),
+                planHint
+        );
+        String fromPlanHint = sanitizeAreaHint(extractAreaTokenFromText(labeledHint));
+        if (!fromPlanHint.isBlank()) {
+            return fromPlanHint;
+        }
+
+        return firstNonBlank(sanitizeAreaHint(fallback), "서울");
+    }
+
+    private String sanitizeAreaHint(String raw) {
+        if (raw == null) {
+            return "";
+        }
+
+        String sanitized = raw
+                .replaceAll("[^\\p{IsHangul}A-Za-z0-9\\s]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+        if (sanitized.isBlank()) {
+            return "";
+        }
+
+        String normalized = sanitized.replaceAll("\\s+", "").toLowerCase();
+        if (GENERIC_AREA_HINTS.contains(normalized)) {
+            return "";
+        }
+
+        return sanitized.length() <= 24 ? sanitized : sanitized.substring(0, 24).trim();
+    }
+
+    private String extractAreaTokenFromText(String rawText) {
+        if (rawText == null || rawText.isBlank()) {
+            return "";
+        }
+
+        String normalized = rawText
+                .replaceAll("[^\\p{IsHangul}A-Za-z0-9\\s]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+        if (normalized.isBlank()) {
+            return "";
+        }
+
+        Matcher inlineMatch = INLINE_AREA_MARKER_PATTERN.matcher(normalized);
+        if (inlineMatch.find()) {
+            return inlineMatch.group(1);
+        }
+
+        String[] tokens = normalized.split(" ");
+        for (int i = 0; i < tokens.length; i++) {
+            String token = tokens[i];
+            for (String marker : List.of("에서", "근처", "근처에서", "주변", "주변에서", "인근", "인근에서", "일대", "일대에서", "부근", "부근에서", "쪽", "쪽에서")) {
+                if (token.endsWith(marker) && token.length() > marker.length()) {
+                    return token.substring(0, token.length() - marker.length()).trim();
+                }
+            }
+            if (List.of("에서", "근처", "근처에서", "주변", "주변에서", "인근", "인근에서", "일대", "일대에서", "부근", "부근에서", "쪽", "쪽에서").contains(token) && i > 0) {
+                return tokens[i - 1].trim();
+            }
+        }
+
+        Matcher suffixMatch = AREA_SUFFIX_PATTERN.matcher(normalized);
+        if (suffixMatch.find()) {
+            return suffixMatch.group(1);
+        }
+
+        return "";
     }
 
     private List<String> resolveRequestedCategories(String planHint) {
