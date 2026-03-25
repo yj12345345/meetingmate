@@ -40,6 +40,9 @@ const CATEGORY_BADGE: Record<string, string> = {
 
 const CATEGORY_PLACE_TARGET = 3;
 const MATCH_THRESHOLD = 10;
+const MAX_KAKAO_QUERY_LENGTH = 45;
+const MAX_REQUEST_PREVIEW_LENGTH = 72;
+const MAX_CHIP_LENGTH = 28;
 
 const formatRecommendationSource = (source: string) => {
     if (source === "AI") return "AI";
@@ -113,7 +116,15 @@ const sanitizeKakaoQuery = (query: string) =>
         .replace(/[^\w\u3131-\u318E\uAC00-\uD7A3\s]/g, " ")
         .replace(/\s+/g, " ")
         .trim()
-        .slice(0, 45);
+        .slice(0, MAX_KAKAO_QUERY_LENGTH);
+
+const compactText = (value: string, maxLength: number) => {
+    const normalized = value.replace(/\s+/g, " ").trim();
+    if (normalized.length <= maxLength) {
+        return normalized;
+    }
+    return `${normalized.slice(0, maxLength - 1)}…`;
+};
 
 const AREA_SUFFIX_PATTERN = /^(?:[가-힣A-Za-z0-9]+)(역|동|구|시|군|읍|면|리)$/;
 const AREA_TRAILING_MARKERS = ["에서", "근처", "근처에서", "주변", "주변에서", "인근", "인근에서", "일대", "일대에서", "쪽", "쪽에서", "부근", "부근에서"];
@@ -124,6 +135,11 @@ const extractAreaFromText = (text: string) => {
         .replace(/\s+/g, " ")
         .trim();
     if (!normalized) return "";
+
+    const inlineMarkerMatch = normalized.match(/([가-힣A-Za-z0-9]{2,12})(?:에서|근처|주변|인근|일대|부근|쪽)/);
+    if (inlineMarkerMatch?.[1]) {
+        return inlineMarkerMatch[1].slice(0, 20);
+    }
 
     const tokens = normalized.split(" ").filter(Boolean);
 
@@ -491,11 +507,14 @@ const distanceInMeters = (
 const getAreaRadius = (areaHint: string) => {
     const normalized = areaHint.replace(/\s+/g, "");
     if (!normalized) return 5000;
-    if (normalized.includes("서울") || normalized.includes("부산") || normalized.includes("대구")) return 8000;
-    if (normalized.includes("구") || normalized.includes("시")) return 6500;
-    if (normalized.includes("역") || normalized.includes("동")) return 3500;
-    return 4500;
+    if (normalized.includes("서울") || normalized.includes("부산") || normalized.includes("대구")) return 7000;
+    if (normalized.includes("구") || normalized.includes("시")) return 4500;
+    if (normalized.includes("역") || normalized.includes("동")) return 2400;
+    return 3000;
 };
+
+const getMaxAllowedDistance = (areaCenter: AreaCenter) =>
+    Math.max(1500, Math.min(areaCenter.radius * 1.15, areaCenter.radius + 900));
 
 const scoreKeywordResult = (
     item: KeywordRecommendation,
@@ -562,13 +581,13 @@ const pickBestKeywordResult = (
                 Number(result.y),
                 Number(result.x),
             );
-
+            const maxDistance = getMaxAllowedDistance(areaCenter);
             if (distance <= areaCenter.radius) {
                 score += 12;
-            } else if (distance <= areaCenter.radius * 1.4) {
+            } else if (distance <= maxDistance) {
                 score += 2;
             } else {
-                score -= 24;
+                score -= 36;
             }
         }
 
@@ -777,7 +796,7 @@ const verifyCategoriesWithKakao = async (
                     Number(bestMatch.result.y),
                     Number(bestMatch.result.x),
                 );
-                if (dist > areaCenter.radius * 1.4) {
+                if (dist > getMaxAllowedDistance(areaCenter)) {
                     droppedCount += 1;
                     continue;
                 }
@@ -861,7 +880,7 @@ const verifyCategoriesWithKakao = async (
                             Number(result.y),
                             Number(result.x),
                         );
-                        if (dist > areaCenter.radius * 1.4) {
+                        if (dist > getMaxAllowedDistance(areaCenter)) {
                             continue;
                         }
                     }
@@ -1031,6 +1050,10 @@ export default function ResultPage() {
     const meetingSummary = [meetingType || "모임", mood, keyword || "지역"]
         .filter(Boolean)
         .join(" · ");
+    const requestText = (planHint || keyword || "").trim();
+    const requestPreview = compactText(requestText, MAX_REQUEST_PREVIEW_LENGTH);
+    const headlineTitle = `${areaHint || compactText(keyword, 16) || "입력 조건"} 기준 실제 장소 추천`;
+    const keywordChip = compactText(areaHint || keyword || "지역", MAX_CHIP_LENGTH);
 
     useEffect(() => {
         if (!keyword) {
@@ -1205,18 +1228,40 @@ export default function ResultPage() {
         let cancelled = false;
 
         ensureKakaoServices(appKey)
-            .then((kakao) => {
+            .then(async (kakao) => {
+                if (cancelled || !mapRef.current) {
+                    return;
+                }
+
+                const placesService = new kakao.maps.services.Places();
+                const geocoder = new kakao.maps.services.Geocoder();
+                const areaCenter = await resolveAreaCenter(kakao, placesService, geocoder, areaHint);
+
                 if (cancelled || !mapRef.current) {
                     return;
                 }
 
                 const map = new kakao.maps.Map(mapRef.current, {
-                    center: new kakao.maps.LatLng(37.5665, 126.978),
+                    center: areaCenter
+                        ? new kakao.maps.LatLng(areaCenter.y, areaCenter.x)
+                        : new kakao.maps.LatLng(37.5665, 126.978),
                     level: 6,
                 });
                 const bounds = new kakao.maps.LatLngBounds();
+                const entriesForMap = areaCenter
+                    ? mappedPlaceEntries.filter(({ resolved }) => {
+                        const distance = distanceInMeters(
+                            areaCenter.y,
+                            areaCenter.x,
+                            resolved.lat,
+                            resolved.lng,
+                        );
+                        return distance <= getMaxAllowedDistance(areaCenter);
+                    })
+                    : mappedPlaceEntries;
+                const finalEntries = entriesForMap.length > 0 ? entriesForMap : mappedPlaceEntries;
 
-                mappedPlaceEntries.forEach(({ item, resolved }) => {
+                finalEntries.forEach(({ item, resolved }) => {
                     const position = new kakao.maps.LatLng(resolved.lat, resolved.lng);
                     const marker = new kakao.maps.Marker({
                         map,
@@ -1231,18 +1276,8 @@ export default function ResultPage() {
                             <strong style="display:block;margin-bottom:6px;font-size:15px;">${escapeHtml(resolved.displayName)}</strong>
                             <div style="font-size:12px;color:#475569;">${escapeHtml(resolved.roadAddress || resolved.addressName || item.address)}</div>
                             ${
-                                resolved.categoryName
-                                    ? `<div style="margin-top:6px;font-size:12px;color:#64748b;">${escapeHtml(resolved.categoryName)}</div>`
-                                    : ""
-                            }
-                            ${
                                 resolved.phone
                                     ? `<div style="margin-top:4px;font-size:12px;color:#64748b;">${escapeHtml(resolved.phone)}</div>`
-                                    : ""
-                            }
-                            ${
-                                item.reason
-                                    ? `<div style="margin-top:8px;font-size:12px;color:#334155;">${escapeHtml(item.reason)}</div>`
                                     : ""
                             }
                             <a
@@ -1260,11 +1295,25 @@ export default function ResultPage() {
                     });
                 });
 
-                map.setBounds(bounds);
+                if (finalEntries.length === 1) {
+                    const only = finalEntries[0].resolved;
+                    map.setCenter(new kakao.maps.LatLng(only.lat, only.lng));
+                    map.setLevel(4);
+                } else {
+                    map.setBounds(bounds);
+                }
 
                 const missingCount = mapPlaces.length - mappedPlaceEntries.length;
+                const outOfAreaCount = mappedPlaceEntries.length - finalEntries.length;
+                const warnings: string[] = [];
                 if (missingCount > 0) {
-                    setMapWarning(`선택한 장소 ${missingCount}건은 카카오맵 등록 정보와 정확히 맞는 결과를 찾지 못해 지도에서 제외했습니다.`);
+                    warnings.push(`선택한 장소 ${missingCount}건은 카카오맵 등록 정보를 찾지 못해 지도에서 제외했습니다.`);
+                }
+                if (outOfAreaCount > 0 && areaHint) {
+                    warnings.push(`${areaHint} 기준 거리 조건을 벗어난 장소 ${outOfAreaCount}건은 지도에서 제외했습니다.`);
+                }
+                if (warnings.length > 0) {
+                    setMapWarning(warnings.join(" "));
                 } else {
                     setMapWarning("");
                 }
@@ -1278,7 +1327,7 @@ export default function ResultPage() {
         return () => {
             cancelled = true;
         };
-    }, [hasRecommendations, mapPlaces.length, mappedPlaceEntries]);
+    }, [areaHint, hasRecommendations, mapPlaces.length, mappedPlaceEntries]);
 
     const handleSelectPlace = (categoryKey: RecommendationCategoryKey, item: KeywordRecommendation) => {
         setSelectedPlaces((current) => ({
@@ -1342,16 +1391,21 @@ export default function ResultPage() {
                         <div className="max-w-4xl">
                             <p className="text-sm uppercase tracking-[0.28em] text-slate-500">Verified Places</p>
                             <h2 className="mt-3 break-keep text-3xl font-semibold leading-tight text-slate-900 md:text-4xl">
-                                {keyword || "입력한 조건"} 기준 실제 장소 추천
+                                {headlineTitle}
                             </h2>
                             <p className="mt-4 text-sm leading-6 text-slate-600 md:text-base">
-                                입력한 의도를 카테고리별 실제 장소로 풀어낸 결과입니다. 고정 동선보다 비교 가능한 후보를 먼저 넓게 보여주고,
-                                마음에 드는 카드만 골라 다음 단계에서 전용 플랜으로 다시 정리할 수 있게 구성했습니다.
+                                입력 조건을 실제 장소로 검증해 카테고리별 후보를 정리했습니다.
                             </p>
-                            {planHint && (
+                            {requestText && (
                                 <div className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">입력한 요청</p>
-                                    <p className="mt-2 whitespace-pre-line">{planHint}</p>
+                                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">요청 요약</p>
+                                    <p className="mt-2">{requestPreview}</p>
+                                    {requestText.length > requestPreview.length && (
+                                        <details className="mt-2">
+                                            <summary className="cursor-pointer text-xs font-semibold text-slate-500">전체 요청 보기</summary>
+                                            <p className="mt-2 whitespace-pre-line">{requestText}</p>
+                                        </details>
+                                    )}
                                 </div>
                             )}
                             <div className="mt-5 flex flex-wrap gap-2">
@@ -1364,7 +1418,7 @@ export default function ResultPage() {
                                     </span>
                                 )}
                                 <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                                    {keyword || "지역"}
+                                    {keywordChip}
                                 </span>
                             </div>
                         </div>
