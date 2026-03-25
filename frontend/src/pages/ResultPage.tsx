@@ -38,7 +38,7 @@ const CATEGORY_BADGE: Record<string, string> = {
     ACTIVITY: "bg-sky-100 text-sky-700",
 };
 
-const CATEGORY_PLACE_TARGET = 5;
+const CATEGORY_PLACE_TARGET = 3;
 const MATCH_THRESHOLD = 10;
 
 const formatRecommendationSource = (source: string) => {
@@ -114,6 +114,59 @@ const sanitizeKakaoQuery = (query: string) =>
         .replace(/\s+/g, " ")
         .trim()
         .slice(0, 45);
+
+const AREA_SUFFIX_PATTERN = /^(?:[가-힣A-Za-z0-9]+)(역|동|구|시|군|읍|면|리)$/;
+const AREA_TRAILING_MARKERS = ["에서", "근처", "근처에서", "주변", "주변에서", "인근", "인근에서", "일대", "일대에서", "쪽", "쪽에서", "부근", "부근에서"];
+
+const extractAreaFromText = (text: string) => {
+    const normalized = text
+        .replace(/[^\w\u3131-\u318E\uAC00-\uD7A3\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    if (!normalized) return "";
+
+    const tokens = normalized.split(" ").filter(Boolean);
+
+    for (let index = 0; index < tokens.length; index += 1) {
+        const token = tokens[index];
+
+        for (const marker of AREA_TRAILING_MARKERS) {
+            if (token.endsWith(marker) && token.length > marker.length) {
+                const candidate = token.slice(0, -marker.length).trim();
+                if (candidate.length >= 2) {
+                    return candidate.slice(0, 20);
+                }
+            }
+        }
+
+        if (AREA_TRAILING_MARKERS.includes(token) && index > 0) {
+            const previous = tokens[index - 1].trim();
+            if (previous.length >= 2) {
+                return previous.slice(0, 20);
+            }
+        }
+    }
+
+    const bySuffix = tokens.find((token) => AREA_SUFFIX_PATTERN.test(token));
+    if (bySuffix) {
+        return bySuffix.slice(0, 20);
+    }
+
+    return "";
+};
+
+const resolveAreaHint = (preferredLocation: string, keyword: string, planHint: string) => {
+    const explicit = sanitizeKakaoQuery(preferredLocation);
+    if (explicit) return explicit;
+
+    const fromKeyword = sanitizeKakaoQuery(extractAreaFromText(keyword));
+    if (fromKeyword) return fromKeyword;
+
+    const fromPlanHint = sanitizeKakaoQuery(extractAreaFromText(planHint));
+    if (fromPlanHint) return fromPlanHint;
+
+    return "";
+};
 
 const hasNameTokenOverlap = (sourceName: string, targetName: string) => {
     const tokens = tokenizeText(sourceName);
@@ -887,16 +940,20 @@ export default function ResultPage() {
     const mood = searchParams.get("mood")?.trim() || routeState.mood || "";
     const preferredLocation = searchParams.get("location")?.trim() || routeState.location || "";
     const planHint = searchParams.get("planHint")?.trim() || routeState.planHint || "";
+    const areaHint = useMemo(
+        () => resolveAreaHint(preferredLocation, keyword, planHint),
+        [preferredLocation, keyword, planHint],
+    );
 
     const requestParams = useMemo(
         () => ({
             keyword,
             meetingType,
             mood,
-            location: preferredLocation,
+            location: areaHint,
             planHint,
         }),
-        [keyword, meetingType, mood, preferredLocation, planHint],
+        [keyword, meetingType, mood, areaHint, planHint],
     );
 
     const cacheKey = useMemo(
@@ -1026,7 +1083,7 @@ export default function ResultPage() {
 
                 const verification = await verifyCategoriesWithKakao(
                     rawCategories,
-                    [preferredLocation, keyword].filter(Boolean).join(" ").trim(),
+                    areaHint,
                     appKey,
                     planHint,
                 );
@@ -1103,7 +1160,7 @@ export default function ResultPage() {
         return () => {
             active = false;
         };
-    }, [cacheKey, keyword, preferredLocation, refreshNonce, requestParams]);
+    }, [areaHint, cacheKey, keyword, refreshNonce, requestParams, planHint]);
 
     useEffect(() => {
         if (!hasRecommendations) {
@@ -1268,7 +1325,7 @@ export default function ResultPage() {
                 keyword,
                 meetingType,
                 mood,
-                location: preferredLocation,
+                location: areaHint,
                 planHint,
                 selectedPlaces: selectedPlaceList,
             },
