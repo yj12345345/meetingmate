@@ -157,6 +157,7 @@ const formatDistanceKm = (value: number) => (Number.isInteger(value) ? `${value}
 
 const AREA_SUFFIX_PATTERN = /^(?:[가-힣A-Za-z0-9]+)(역|동|구|시|군|읍|면|리)$/;
 const AREA_TRAILING_MARKERS = ["에서", "근처", "근처에서", "주변", "주변에서", "인근", "인근에서", "일대", "일대에서", "쪽", "쪽에서", "부근", "부근에서"];
+const AREA_INLINE_PATTERN = /([가-힣A-Za-z0-9]{2,12})\s*(?:근처에서|근처|주변에서|주변|인근에서|인근|일대에서|일대|부근에서|부근|쪽에서|쪽|에서)/g;
 const GENERIC_AREA_HINTS = new Set([
     "근처",
     "주변",
@@ -172,15 +173,20 @@ const GENERIC_AREA_HINTS = new Set([
 ]);
 
 const extractAreaFromText = (text: string) => {
+    const isGenericAreaWord = (value: string) =>
+        GENERIC_AREA_HINTS.has(value.replace(/\s+/g, "").toLowerCase());
     const normalized = text
         .replace(/[^\w\u3131-\u318E\uAC00-\uD7A3\s]/g, " ")
         .replace(/\s+/g, " ")
         .trim();
     if (!normalized) return "";
 
-    const inlineMarkerMatch = normalized.match(/([가-힣A-Za-z0-9]{2,12})(?:에서|근처|주변|인근|일대|부근|쪽)/);
-    if (inlineMarkerMatch?.[1]) {
-        return inlineMarkerMatch[1].slice(0, 20);
+    const inlineMatches = normalized.matchAll(AREA_INLINE_PATTERN);
+    for (const match of inlineMatches) {
+        const candidate = (match[1] || "").trim();
+        if (candidate.length >= 2 && !isGenericAreaWord(candidate)) {
+            return candidate.slice(0, 20);
+        }
     }
 
     const tokens = normalized.split(" ").filter(Boolean);
@@ -191,7 +197,7 @@ const extractAreaFromText = (text: string) => {
         for (const marker of AREA_TRAILING_MARKERS) {
             if (token.endsWith(marker) && token.length > marker.length) {
                 const candidate = token.slice(0, -marker.length).trim();
-                if (candidate.length >= 2) {
+                if (candidate.length >= 2 && !isGenericAreaWord(candidate)) {
                     return candidate.slice(0, 20);
                 }
             }
@@ -199,13 +205,13 @@ const extractAreaFromText = (text: string) => {
 
         if (AREA_TRAILING_MARKERS.includes(token) && index > 0) {
             const previous = tokens[index - 1].trim();
-            if (previous.length >= 2) {
+            if (previous.length >= 2 && !isGenericAreaWord(previous)) {
                 return previous.slice(0, 20);
             }
         }
     }
 
-    const bySuffix = tokens.find((token) => AREA_SUFFIX_PATTERN.test(token));
+    const bySuffix = tokens.find((token) => AREA_SUFFIX_PATTERN.test(token) && !isGenericAreaWord(token));
     if (bySuffix) {
         return bySuffix.slice(0, 20);
     }
@@ -214,8 +220,24 @@ const extractAreaFromText = (text: string) => {
 };
 
 const resolveAreaHint = (preferredLocation: string, keyword: string, planHint: string) => {
+    const trimGenericSuffix = (value: string) => {
+        let next = value.trim();
+        const genericSuffixes = ["근처", "주변", "인근", "일대", "부근", "쪽"];
+        let changed = true;
+        while (changed) {
+            changed = false;
+            for (const suffix of genericSuffixes) {
+                if (next.endsWith(suffix) && next.length > suffix.length) {
+                    next = next.slice(0, -suffix.length).trim();
+                    changed = true;
+                }
+            }
+        }
+        return next;
+    };
+
     const normalizeAreaCandidate = (value: string) => {
-        const sanitized = sanitizeKakaoQuery(value);
+        const sanitized = sanitizeKakaoQuery(trimGenericSuffix(value));
         if (!sanitized) {
             return "";
         }
@@ -228,6 +250,11 @@ const resolveAreaHint = (preferredLocation: string, keyword: string, planHint: s
 
     const fromKeyword = normalizeAreaCandidate(extractAreaFromText(keyword));
     if (fromKeyword) return fromKeyword;
+
+    const directKeyword = normalizeAreaCandidate(keyword);
+    if (directKeyword && directKeyword.split(" ").length <= 2) {
+        return directKeyword;
+    }
 
     const fromPlanHint = normalizeAreaCandidate(extractAreaFromText(planHint));
     if (fromPlanHint) return fromPlanHint;
