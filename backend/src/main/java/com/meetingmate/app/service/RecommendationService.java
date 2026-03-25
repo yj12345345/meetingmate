@@ -1240,6 +1240,11 @@ public class RecommendationService {
             return fromKeyword;
         }
 
+        String directKeyword = sanitizeAreaHint(keyword);
+        if (!directKeyword.isBlank() && directKeyword.split("\\s+").length <= 2) {
+            return directKeyword;
+        }
+
         String labeledHint = firstNonBlank(
                 extractLabeledHint(planHint, "메인 요청"),
                 extractLabeledHint(planHint, "추가 요청"),
@@ -1251,7 +1256,12 @@ public class RecommendationService {
             return fromPlanHint;
         }
 
-        return firstNonBlank(sanitizeAreaHint(fallback), "서울");
+        String fromFallback = sanitizeAreaHint(extractAreaTokenFromText(fallback));
+        if (!fromFallback.isBlank()) {
+            return fromFallback;
+        }
+
+        return "서울";
     }
 
     private String sanitizeAreaHint(String raw) {
@@ -1265,6 +1275,18 @@ public class RecommendationService {
                 .trim();
         if (sanitized.isBlank()) {
             return "";
+        }
+
+        String compact = sanitized.replaceAll("\\s+", "");
+        boolean compactTrimmed = false;
+        for (String suffix : List.of("근처", "주변", "인근", "일대", "부근", "쪽")) {
+            if (compact.endsWith(suffix) && compact.length() > suffix.length()) {
+                compact = compact.substring(0, compact.length() - suffix.length());
+                compactTrimmed = true;
+            }
+        }
+        if (compactTrimmed) {
+            sanitized = compact;
         }
 
         String normalized = sanitized.replaceAll("\\s+", "").toLowerCase();
@@ -1289,26 +1311,39 @@ public class RecommendationService {
         }
 
         Matcher inlineMatch = INLINE_AREA_MARKER_PATTERN.matcher(normalized);
-        if (inlineMatch.find()) {
-            return inlineMatch.group(1);
+        while (inlineMatch.find()) {
+            String candidate = inlineMatch.group(1);
+            if (!sanitizeAreaHint(candidate).isBlank()) {
+                return candidate;
+            }
         }
 
         String[] tokens = normalized.split(" ");
+        List<String> trailingMarkers = List.of("에서", "근처", "근처에서", "주변", "주변에서", "인근", "인근에서", "일대", "일대에서", "부근", "부근에서", "쪽", "쪽에서");
         for (int i = 0; i < tokens.length; i++) {
             String token = tokens[i];
-            for (String marker : List.of("에서", "근처", "근처에서", "주변", "주변에서", "인근", "인근에서", "일대", "일대에서", "부근", "부근에서", "쪽", "쪽에서")) {
+            for (String marker : trailingMarkers) {
                 if (token.endsWith(marker) && token.length() > marker.length()) {
-                    return token.substring(0, token.length() - marker.length()).trim();
+                    String candidate = token.substring(0, token.length() - marker.length()).trim();
+                    if (!sanitizeAreaHint(candidate).isBlank()) {
+                        return candidate;
+                    }
                 }
             }
-            if (List.of("에서", "근처", "근처에서", "주변", "주변에서", "인근", "인근에서", "일대", "일대에서", "부근", "부근에서", "쪽", "쪽에서").contains(token) && i > 0) {
-                return tokens[i - 1].trim();
+            if (trailingMarkers.contains(token) && i > 0) {
+                String candidate = tokens[i - 1].trim();
+                if (!sanitizeAreaHint(candidate).isBlank()) {
+                    return candidate;
+                }
             }
         }
 
         Matcher suffixMatch = AREA_SUFFIX_PATTERN.matcher(normalized);
-        if (suffixMatch.find()) {
-            return suffixMatch.group(1);
+        while (suffixMatch.find()) {
+            String candidate = suffixMatch.group(1);
+            if (!sanitizeAreaHint(candidate).isBlank()) {
+                return candidate;
+            }
         }
 
         return "";
