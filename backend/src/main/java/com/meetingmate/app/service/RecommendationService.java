@@ -37,7 +37,12 @@ public class RecommendationService {
             "근처", "주변", "인근", "일대", "부근", "여기", "저기", "그근처", "근방", "주위", "지역"
     );
     private static final Pattern INLINE_AREA_MARKER_PATTERN = Pattern.compile("([가-힣A-Za-z0-9]{2,12})(?:에서|근처|주변|인근|일대|부근|쪽)");
+    private static final Pattern PREFIX_AREA_ACTIVITY_PATTERN = Pattern.compile("([가-힣A-Za-z0-9]{2,12})(?:여행|데이트|나들이|모임)");
     private static final Pattern AREA_SUFFIX_PATTERN = Pattern.compile("([가-힣A-Za-z0-9]{2,12}(?:역|동|구|시|군|읍|면|리))");
+    private static final Set<String> AREA_STOPWORDS = Set.of(
+            "친구", "연인", "가족", "모임", "여행", "관광", "동선", "메뉴",
+            "맛집", "카페", "식당", "술집", "코스", "근처", "주변", "인근", "일대", "부근"
+    );
     private static final Map<String, String> CATEGORY_TITLES = Map.of(
             "RESTAURANT", "식당",
             "CAFE", "카페",
@@ -1230,7 +1235,10 @@ public class RecommendationService {
     }
 
     private String resolveAreaForPrompt(String location, String keyword, String planHint, String fallback) {
-        String explicit = sanitizeAreaHint(location);
+        String explicit = firstNonBlank(
+                sanitizeAreaHint(extractAreaTokenFromText(location)),
+                sanitizeAreaHint(location)
+        );
         if (!explicit.isBlank()) {
             return explicit;
         }
@@ -1318,6 +1326,14 @@ public class RecommendationService {
             }
         }
 
+        Matcher prefixActivityMatch = PREFIX_AREA_ACTIVITY_PATTERN.matcher(normalized);
+        while (prefixActivityMatch.find()) {
+            String candidate = prefixActivityMatch.group(1);
+            if (!sanitizeAreaHint(candidate).isBlank()) {
+                return candidate;
+            }
+        }
+
         String[] tokens = normalized.split(" ");
         List<String> trailingMarkers = List.of("에서", "근처", "근처에서", "주변", "주변에서", "인근", "인근에서", "일대", "일대에서", "부근", "부근에서", "쪽", "쪽에서");
         for (int i = 0; i < tokens.length; i++) {
@@ -1343,6 +1359,21 @@ public class RecommendationService {
             String candidate = suffixMatch.group(1);
             if (!sanitizeAreaHint(candidate).isBlank()) {
                 return candidate;
+            }
+        }
+
+        for (String token : tokens) {
+            if (token.length() < 2) {
+                continue;
+            }
+            if (AREA_STOPWORDS.contains(token)) {
+                continue;
+            }
+            if (token.matches(".*\\d.*")) {
+                continue;
+            }
+            if (!sanitizeAreaHint(token).isBlank()) {
+                return token;
             }
         }
 

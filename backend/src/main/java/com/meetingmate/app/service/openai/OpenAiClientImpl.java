@@ -60,7 +60,7 @@ public class OpenAiClientImpl implements OpenAiClient {
                         {
                           "categories": [
                             {
-                              "key": "One of RESTAURANT, CAFE, BAR, PC_ROOM, ACTIVITY",
+                              "key": "One of RESTAURANT, CAFE, BAR, PC_ROOM, KARAOKE, SHOPPING, ACTIVITY",
                               "title": "A short Korean category title",
                               "description": "One short Korean sentence explaining why this category matters",
                               "places": [

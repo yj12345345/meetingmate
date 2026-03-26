@@ -1,0 +1,174 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.security",
+    "module": "spring-security-oauth2-client",
+    "version": "7.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.14"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.security",
+          "module": "spring-security-core",
+          "version": {
+            "requires": "7.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.security",
+          "module": "spring-security-oauth2-core",
+          "version": {
+            "requires": "7.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.security",
+          "module": "spring-security-web",
+          "version": {
+            "requires": "7.0.0"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-core",
+          "version": {
+            "requires": "7.0.0"
+          }
+        },
+        {
+          "group": "com.nimbusds",
+          "module": "oauth2-oidc-sdk",
+          "version": {
+            "requires": "11.26.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-security-oauth2-client-7.0.0.jar",
+          "url": "spring-security-oauth2-client-7.0.0.jar",
+          "size": 450712,
+          "sha512": "d6ebceeeb435d19afe5948604449d9c8a6665d598da72d025d2185fa3b031ced19e87f2205428866976ea4953adb36a4c382f6f4554b8160f66433e009cba38f",
+          "sha256": "baac398c42b826be40403316d6dbc88cbce24e236fa5edc1fb67124654820ae5",
+          "sha1": "96c1a4e77bea5cc9bc66fe1548de02683d48d676",
+          "md5": "d77102e060d2aea5722b84d5c52509bc"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.security",
+          "module": "spring-security-core",
+          "version": {
+            "requires": "7.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.security",
+          "module": "spring-security-oauth2-core",
+          "version": {
+            "requires": "7.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.security",
+          "module": "spring-security-web",
+          "version": {
+            "requires": "7.0.0"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-core",
+          "version": {
+            "requires": "7.0.0"
+          }
+        },
+        {
+          "group": "com.nimbusds",
+          "module": "oauth2-oidc-sdk",
+          "version": {
+            "requires": "11.26.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-security-oauth2-client-7.0.0.jar",
+          "url": "spring-security-oauth2-client-7.0.0.jar",
+          "size": 450712,
+          "sha512": "d6ebceeeb435d19afe5948604449d9c8a6665d598da72d025d2185fa3b031ced19e87f2205428866976ea4953adb36a4c382f6f4554b8160f66433e009cba38f",
+          "sha256": "baac398c42b826be40403316d6dbc88cbce24e236fa5edc1fb67124654820ae5",
+          "sha1": "96c1a4e77bea5cc9bc66fe1548de02683d48d676",
+          "md5": "d77102e060d2aea5722b84d5c52509bc"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-security-oauth2-client-7.0.0-javadoc.jar",
+          "url": "spring-security-oauth2-client-7.0.0-javadoc.jar",
+          "size": 844948,
+          "sha512": "4d5cf2a61b635c6eb28a6924356a705f82afd7a4d6e62fc6c72ccb069fe1ca4cbbc3a822809e15cf53caa663fbbc75993c52c277d167139d25f5174e56ec528c",
+          "sha256": "3db0ed567c10cf2bd677a51b7423186f3a46ecb539d3a78cbec75dd14b9c8b72",
+          "sha1": "33b21b651a483abb28d1e40c2a2abc8c928221d2",
+          "md5": "5b9e9adfa562204cc023db18c242bc0b"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-security-oauth2-client-7.0.0-sources.jar",
+          "url": "spring-security-oauth2-client-7.0.0-sources.jar",
+          "size": 350759,
+          "sha512": "39187ec86ef53425969941b03e4652f75a2bbb24f60835df28ea1904bbebc7912ec6fe067595998bafea95f9fb1b017a30ea2c950d76d3df7319c1a8dce7decd",
+          "sha256": "9308f4d74810b726182b91b9a3f903bcaea049621bbff07993a556ddcbd506e1",
+          "sha1": "44c7566c341eb8c74c04c95d70553de01286dcaa",
+          "md5": "906007515c97520f2fa4c5d777b414ae"
+        }
+      ]
+    }
+  ]
+}

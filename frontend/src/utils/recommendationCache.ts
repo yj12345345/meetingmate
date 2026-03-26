@@ -11,7 +11,6 @@ type RecommendationCacheQuery = {
     mood?: string;
     location?: string;
     planHint?: string;
-    maxDistanceKm?: number;
 };
 
 export type RecommendationCacheEntry = {
@@ -24,7 +23,7 @@ export type RecommendationCacheEntry = {
     savedAt: number;
 };
 
-const PREFIX = "meetingmate:recommendation:v10";
+const PREFIX = "meetingmate:recommendation:v11";
 
 const getUserScope = () => {
     const token = localStorage.getItem("accessToken");
@@ -32,9 +31,6 @@ const getUserScope = () => {
 };
 
 const normalizePart = (value?: string) => (value || "").trim();
-const normalizeDistancePart = (value?: number) =>
-    Number.isFinite(value) ? String(Math.round((value || 0) * 10) / 10) : "";
-
 export const buildRecommendationCacheKey = (query: RecommendationCacheQuery) =>
     [
         PREFIX,
@@ -44,7 +40,6 @@ export const buildRecommendationCacheKey = (query: RecommendationCacheQuery) =>
         normalizePart(query.mood),
         normalizePart(query.location),
         normalizePart(query.planHint),
-        normalizeDistancePart(query.maxDistanceKm),
     ].join("::");
 
 export const loadRecommendationCache = (

@@ -1,0 +1,153 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.boot",
+    "module": "spring-boot-reactor-netty",
+    "version": "4.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.2.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-web-server",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "io.projectreactor.netty",
+          "module": "reactor-netty-http",
+          "version": {
+            "requires": "1.3.0"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-web",
+          "version": {
+            "requires": "7.0.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-reactor-netty-4.0.0.jar",
+          "url": "spring-boot-reactor-netty-4.0.0.jar",
+          "size": 41750,
+          "sha512": "0499c53408e3da9b747dcc171ba57b831fa7e82b2bdbd0ce685508b4760c9b9c712af3dde57c8c1b155729f700fc278eb30ee2f019341e86a76333baca14b47b",
+          "sha256": "b6857b2c030bbdff89aaa8ce10f97332cc6bb30c17bfae11dcbd564910473b0f",
+          "sha1": "010baf3e523e1701c98559410dc2457ddcac2a12",
+          "md5": "164a820f408050792f77ee68da9e97cd"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-netty",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-web-server",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "io.projectreactor.netty",
+          "module": "reactor-netty-http",
+          "version": {
+            "requires": "1.3.0"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-web",
+          "version": {
+            "requires": "7.0.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-reactor-netty-4.0.0.jar",
+          "url": "spring-boot-reactor-netty-4.0.0.jar",
+          "size": 41750,
+          "sha512": "0499c53408e3da9b747dcc171ba57b831fa7e82b2bdbd0ce685508b4760c9b9c712af3dde57c8c1b155729f700fc278eb30ee2f019341e86a76333baca14b47b",
+          "sha256": "b6857b2c030bbdff89aaa8ce10f97332cc6bb30c17bfae11dcbd564910473b0f",
+          "sha1": "010baf3e523e1701c98559410dc2457ddcac2a12",
+          "md5": "164a820f408050792f77ee68da9e97cd"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-reactor-netty-4.0.0-javadoc.jar",
+          "url": "spring-boot-reactor-netty-4.0.0-javadoc.jar",
+          "size": 4197637,
+          "sha512": "4e64a85648e4f0bb2f00345acd50c522af77e4990ae4063a8b9c7980e8e0b0f0a0d2047906964da317f37d6f4e90a0adf8d531cef5e547a2e686cbdaead787df",
+          "sha256": "35543cbb36351fdba2689d5ffba18d6586e12d3af9bf952d7db20a30689591d9",
+          "sha1": "e62014ad5f111827a819e0e4639f3401b3e81d24",
+          "md5": "18a2a8528819f6d9068944c0caa1c6ae"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-reactor-netty-4.0.0-sources.jar",
+          "url": "spring-boot-reactor-netty-4.0.0-sources.jar",
+          "size": 30242,
+          "sha512": "73a5f825e64867c4c07d9891a3c78c502e9f58f37fcb5d0532aac748fac7b0a40efbc4b1bc731dee2442209986708915fecfc901bc4db7c4cb21d4da860b13d6",
+          "sha256": "4b3270e239f9efa7510d6d523035ab279a97af091a6859c0802a481a4957a619",
+          "sha1": "fd8ae6b0375a3fc4342083aada0f336546b90ef4",
+          "md5": "240938c414098cfe2cdaeb89729ef899"
+        }
+      ]
+    }
+  ]
+}

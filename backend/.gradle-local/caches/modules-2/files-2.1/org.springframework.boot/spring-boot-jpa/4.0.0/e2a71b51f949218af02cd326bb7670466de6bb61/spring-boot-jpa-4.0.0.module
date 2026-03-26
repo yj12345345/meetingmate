@@ -1,0 +1,160 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.boot",
+    "module": "spring-boot-jpa",
+    "version": "4.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.2.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-jdbc",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-transaction",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "jakarta.persistence",
+          "module": "jakarta.persistence-api",
+          "version": {
+            "requires": "3.2.0"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-orm",
+          "version": {
+            "requires": "7.0.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-jpa-4.0.0.jar",
+          "url": "spring-boot-jpa-4.0.0.jar",
+          "size": 23913,
+          "sha512": "75ae354d8a4aaabb380ebb7c32e3e53728cb071b69d7478f30ce3268369ac9f4e3c8d7a232a4dee2d27920c65c1786b24e34c744bf0498c285c3199260cced63",
+          "sha256": "3eab0bb199215bf6bd5f98960204ee390a81826aeeb22bfc07bc2ac1062017b8",
+          "sha1": "f94bb13dd5900631e7f1011b261e6265fc6f79dd",
+          "md5": "f2aee0e0bbe503657874bca7271a428b"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-jdbc",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-transaction",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "jakarta.persistence",
+          "module": "jakarta.persistence-api",
+          "version": {
+            "requires": "3.2.0"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-orm",
+          "version": {
+            "requires": "7.0.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-jpa-4.0.0.jar",
+          "url": "spring-boot-jpa-4.0.0.jar",
+          "size": 23913,
+          "sha512": "75ae354d8a4aaabb380ebb7c32e3e53728cb071b69d7478f30ce3268369ac9f4e3c8d7a232a4dee2d27920c65c1786b24e34c744bf0498c285c3199260cced63",
+          "sha256": "3eab0bb199215bf6bd5f98960204ee390a81826aeeb22bfc07bc2ac1062017b8",
+          "sha1": "f94bb13dd5900631e7f1011b261e6265fc6f79dd",
+          "md5": "f2aee0e0bbe503657874bca7271a428b"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-jpa-4.0.0-javadoc.jar",
+          "url": "spring-boot-jpa-4.0.0-javadoc.jar",
+          "size": 4181658,
+          "sha512": "f79ffbb01ccf9b16dc27d33e602f962530aba3438e6badf50852fa9126fefd7017d20e6b3d88999848b0494c02e4d8e4335109db11cca1d99c58b34131ca9380",
+          "sha256": "ef3f436ccde214a92bfb5806a5906b8feef646a60212a86138a0a55a4ad034df",
+          "sha1": "2aeb761b78d152785506bd893723f7d989695199",
+          "md5": "aa0264e95c1cb5008e974efef418b5a5"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-jpa-4.0.0-sources.jar",
+          "url": "spring-boot-jpa-4.0.0-sources.jar",
+          "size": 18816,
+          "sha512": "500bafdc47f8acffae9088442a632054312b3ee51de9d0282e729de7d1cfbdb6918da6033439521ca916ac12c74abb067c2e69d77505b074d04a4fe631dad7dd",
+          "sha256": "43d52e2cbd028f4fe83f98b1b83d00b99c8cf166c876d9a980e78c23d30d86c8",
+          "sha1": "59b990739ac95a07adae7d6020a0e49e8db77bf5",
+          "md5": "2b98824fde5d6c29035e457efe3c7022"
+        }
+      ]
+    }
+  ]
+}
