@@ -1,0 +1,125 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.boot",
+    "module": "spring-boot-netty",
+    "version": "4.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.2.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot",
+          "version": {
+            "requires": "4.0.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-netty-4.0.0.jar",
+          "url": "spring-boot-netty-4.0.0.jar",
+          "size": 9807,
+          "sha512": "3a06fd188df264be5a8f0546dec65852d3e2e7aaaa073cbbcee609102e0a7dd3cbbebbb597282cf5466466982c0c54fc4a1bcc2aa5803bec7d0873ba5bbc88e2",
+          "sha256": "13437b7868170e1d024d6dcdec713f2532c08d50dfd10fc44ef6dd1b95537a3b",
+          "sha1": "6b72f00dd006fb84b34f3663bd7f6c29e234c8e8",
+          "md5": "fba8a9d34ad40fca47eb08f49561ce51"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "io.netty",
+          "module": "netty-common",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot",
+          "version": {
+            "requires": "4.0.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-netty-4.0.0.jar",
+          "url": "spring-boot-netty-4.0.0.jar",
+          "size": 9807,
+          "sha512": "3a06fd188df264be5a8f0546dec65852d3e2e7aaaa073cbbcee609102e0a7dd3cbbebbb597282cf5466466982c0c54fc4a1bcc2aa5803bec7d0873ba5bbc88e2",
+          "sha256": "13437b7868170e1d024d6dcdec713f2532c08d50dfd10fc44ef6dd1b95537a3b",
+          "sha1": "6b72f00dd006fb84b34f3663bd7f6c29e234c8e8",
+          "md5": "fba8a9d34ad40fca47eb08f49561ce51"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-netty-4.0.0-javadoc.jar",
+          "url": "spring-boot-netty-4.0.0-javadoc.jar",
+          "size": 4158716,
+          "sha512": "378d92b32d2d0a0b527c37495a7609d85700316b3161f83e8108665d06a76211c03283546ea6e8382480778989954880a0ba26c25423d135864c4aa023826659",
+          "sha256": "c449090ffda028126fa5f739d28ef00a8149c78b42d3e74e7774097d95339f38",
+          "sha1": "84cb90918450e9ee5c29cbe403ebeb8577981f91",
+          "md5": "f06aa7070d5c0a6fc2d2ca8ed9604c6b"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-netty-4.0.0-sources.jar",
+          "url": "spring-boot-netty-4.0.0-sources.jar",
+          "size": 8727,
+          "sha512": "f4b5a94c90b7753bf8dfaded92f9b10502f2bf8156733bb70fadd47ab68589181747f3074fe1ff5bc5e5fba5169d6737da0d4b041d85c960fccb9e012c2f0788",
+          "sha256": "5a70354133eb41f1bfec8d9a797e18c37549ffd8cbba9355c81c42822ab37f72",
+          "sha1": "ada30bb9d2ef9b2a2655bde5b0b0fdbaff8700f5",
+          "md5": "7236cbd536fac82447cc76d8c07c0b2f"
+        }
+      ]
+    }
+  ]
+}

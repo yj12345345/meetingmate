@@ -1,0 +1,132 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.boot",
+    "module": "spring-boot-starter-validation",
+    "version": "4.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.2.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-starter",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-validation",
+          "version": {
+            "requires": "4.0.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-starter-validation-4.0.0.jar",
+          "url": "spring-boot-starter-validation-4.0.0.jar",
+          "size": 4765,
+          "sha512": "8c4f50d90f996528a5135a6c79b3710ec10b4a549ebdcbf2a2bfcac9fa5ec307f37272eaa44fa38b0540d65ea319c75ec35dc6996713cd2355649e98a8b52bbb",
+          "sha256": "4cd1460fd077eb5c90e73e795af6f156cc237985ea25182fd7366d3cf88736b3",
+          "sha1": "252ccb5edaad81458f485b6f8fd4f56b7240183e",
+          "md5": "1ca8ae0fe908c2c2fa6ff070fe67a5ab"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-starter",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-validation",
+          "version": {
+            "requires": "4.0.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-starter-validation-4.0.0.jar",
+          "url": "spring-boot-starter-validation-4.0.0.jar",
+          "size": 4765,
+          "sha512": "8c4f50d90f996528a5135a6c79b3710ec10b4a549ebdcbf2a2bfcac9fa5ec307f37272eaa44fa38b0540d65ea319c75ec35dc6996713cd2355649e98a8b52bbb",
+          "sha256": "4cd1460fd077eb5c90e73e795af6f156cc237985ea25182fd7366d3cf88736b3",
+          "sha1": "252ccb5edaad81458f485b6f8fd4f56b7240183e",
+          "md5": "1ca8ae0fe908c2c2fa6ff070fe67a5ab"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-starter-validation-4.0.0-javadoc.jar",
+          "url": "spring-boot-starter-validation-4.0.0-javadoc.jar",
+          "size": 4765,
+          "sha512": "8c4f50d90f996528a5135a6c79b3710ec10b4a549ebdcbf2a2bfcac9fa5ec307f37272eaa44fa38b0540d65ea319c75ec35dc6996713cd2355649e98a8b52bbb",
+          "sha256": "4cd1460fd077eb5c90e73e795af6f156cc237985ea25182fd7366d3cf88736b3",
+          "sha1": "252ccb5edaad81458f485b6f8fd4f56b7240183e",
+          "md5": "1ca8ae0fe908c2c2fa6ff070fe67a5ab"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-starter-validation-4.0.0-sources.jar",
+          "url": "spring-boot-starter-validation-4.0.0-sources.jar",
+          "size": 4765,
+          "sha512": "8c4f50d90f996528a5135a6c79b3710ec10b4a549ebdcbf2a2bfcac9fa5ec307f37272eaa44fa38b0540d65ea319c75ec35dc6996713cd2355649e98a8b52bbb",
+          "sha256": "4cd1460fd077eb5c90e73e795af6f156cc237985ea25182fd7366d3cf88736b3",
+          "sha1": "252ccb5edaad81458f485b6f8fd4f56b7240183e",
+          "md5": "1ca8ae0fe908c2c2fa6ff070fe67a5ab"
+        }
+      ]
+    }
+  ]
+}

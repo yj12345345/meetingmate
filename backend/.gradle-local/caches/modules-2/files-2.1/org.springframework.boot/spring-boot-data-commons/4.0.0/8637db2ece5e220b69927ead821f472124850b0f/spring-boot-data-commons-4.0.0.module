@@ -1,0 +1,146 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.boot",
+    "module": "spring-boot-data-commons",
+    "version": "4.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.2.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-persistence",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.data",
+          "module": "spring-data-commons",
+          "version": {
+            "requires": "4.0.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-data-commons-4.0.0.jar",
+          "url": "spring-boot-data-commons-4.0.0.jar",
+          "size": 30271,
+          "sha512": "e082080e6f4cd4d79ec79c729f87613018c5520a4721379a43486bd93d8f95be12d178f7b38cace9438f69e802a048f92a55390855e017a50a8a5e7d0cc14fa1",
+          "sha256": "de1aa009305e37e7e88533098a695b46d24fee640359216aa528f1f193c23809",
+          "sha1": "a9e102f4ee6277954e1451683d7b506d682ebb85",
+          "md5": "da3e3e7902d6ddde6a4ac5a2b2b824f4"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot-persistence",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "org.springframework.data",
+          "module": "spring-data-commons",
+          "version": {
+            "requires": "4.0.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-data-commons-4.0.0.jar",
+          "url": "spring-boot-data-commons-4.0.0.jar",
+          "size": 30271,
+          "sha512": "e082080e6f4cd4d79ec79c729f87613018c5520a4721379a43486bd93d8f95be12d178f7b38cace9438f69e802a048f92a55390855e017a50a8a5e7d0cc14fa1",
+          "sha256": "de1aa009305e37e7e88533098a695b46d24fee640359216aa528f1f193c23809",
+          "sha1": "a9e102f4ee6277954e1451683d7b506d682ebb85",
+          "md5": "da3e3e7902d6ddde6a4ac5a2b2b824f4"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-data-commons-4.0.0-javadoc.jar",
+          "url": "spring-boot-data-commons-4.0.0-javadoc.jar",
+          "size": 4203344,
+          "sha512": "34cdefdbbefcd9073133bb7d2a5ec0b9f4d82b3351de37445ef8cca3e4d8148aafa407a52a0ac15f0bbedb804c71d049253159f34e44e078a38df2e65e407a39",
+          "sha256": "60899ffeea52774ec8d2de513d80850b758ebc9e9b8769b6260e6685db6c79cc",
+          "sha1": "c8c0597023c11d9f8e9ab61ec0baa2a2c9a3b3fa",
+          "md5": "9386690d9cce1ca1e4a0ac0fdab3979d"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-data-commons-4.0.0-sources.jar",
+          "url": "spring-boot-data-commons-4.0.0-sources.jar",
+          "size": 22866,
+          "sha512": "11292bb98a17e72935619922bd96c8a6578b41d3994b8b922388085c3722fe59587d70eeaa07126eb931363da62151e1467373f97f4cb5c5512b4d5f7ca7547d",
+          "sha256": "bcd5fd3c74103578bcbb2005aabbd718115a9eb914673a6547c02dd5d2e642c7",
+          "sha1": "2a3f147eb1f64d5580e1c3399a30015c1cc14191",
+          "md5": "f872d9cfd81a84c7bd904cf459133b36"
+        }
+      ]
+    }
+  ]
+}

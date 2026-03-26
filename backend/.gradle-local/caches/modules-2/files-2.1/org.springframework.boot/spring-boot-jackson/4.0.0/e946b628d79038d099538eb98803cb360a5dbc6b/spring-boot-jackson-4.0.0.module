@@ -1,0 +1,132 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.boot",
+    "module": "spring-boot-jackson",
+    "version": "4.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.2.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "tools.jackson.core",
+          "module": "jackson-databind",
+          "version": {
+            "requires": "3.0.2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-jackson-4.0.0.jar",
+          "url": "spring-boot-jackson-4.0.0.jar",
+          "size": 67873,
+          "sha512": "88841b472ef52693ce63f6ef261f7c2a32aec5041692bb25095bb0470805228eed1cec200686fe90d847db9f936860ed786253de485ec84020f07b7be658af8e",
+          "sha256": "5cd8796b8dbf3e2a873ece0d1fe94fff99b53ce1e18e7460e70e38e94d5a449d",
+          "sha1": "ce6c55e2dc62422bf57ce38692b6a8adcd31aa13",
+          "md5": "89e93d1b940045f48ba4af65b8c56f9e"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot",
+          "version": {
+            "requires": "4.0.0"
+          }
+        },
+        {
+          "group": "tools.jackson.core",
+          "module": "jackson-databind",
+          "version": {
+            "requires": "3.0.2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-jackson-4.0.0.jar",
+          "url": "spring-boot-jackson-4.0.0.jar",
+          "size": 67873,
+          "sha512": "88841b472ef52693ce63f6ef261f7c2a32aec5041692bb25095bb0470805228eed1cec200686fe90d847db9f936860ed786253de485ec84020f07b7be658af8e",
+          "sha256": "5cd8796b8dbf3e2a873ece0d1fe94fff99b53ce1e18e7460e70e38e94d5a449d",
+          "sha1": "ce6c55e2dc62422bf57ce38692b6a8adcd31aa13",
+          "md5": "89e93d1b940045f48ba4af65b8c56f9e"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-jackson-4.0.0-javadoc.jar",
+          "url": "spring-boot-jackson-4.0.0-javadoc.jar",
+          "size": 4222532,
+          "sha512": "966ec36d4f03b50a3fe0bfd1407beca52c0f03ca6bbe72cb57b16b9b28f94c93c344cb357b852cc04beaa01bc95a83b2406da3a7df22dcff61391ebd0e0feec5",
+          "sha256": "3c033f199dbc6256ab9c0e5ded3f59e179043c3f6726f56423e47daab6019846",
+          "sha1": "3fcf9a94497f1ade277e16ceea9b722b4112e808",
+          "md5": "d05748448ecb00c56720b09fe07b21e0"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-jackson-4.0.0-sources.jar",
+          "url": "spring-boot-jackson-4.0.0-sources.jar",
+          "size": 35349,
+          "sha512": "0ff0d5563d9e0e603c99c41f8afa60cf6c69146d114bed59bf3892ed9e5b3a67aa012bb4a41b30b7f456aa864b18c9b8aa4192bdd378c6bb555c2e1b1860782e",
+          "sha256": "e2167a9fe3caaec1387eff70ee73e178fc81334f77f20c76838edd94eba160a3",
+          "sha1": "04e8857dd36d3920478480615d0757f8ea257f97",
+          "md5": "4e62a0eb3d0ee2bdcf4683913b42039b"
+        }
+      ]
+    }
+  ]
+}
