@@ -54,6 +54,10 @@ const MAX_KAKAO_QUERY_LENGTH = 45;
 const MIN_DISTANCE_KM = 1.5;
 const MAX_DISTANCE_KM = 8;
 const DEFAULT_DISTANCE_KM = 2.8;
+const ITEM_QUERY_LIMIT = 2;
+const REPLACEMENT_QUERY_LIMIT = 3;
+const DEFAULT_SEARCH_PAGE_SIZE = 15;
+const DEFAULT_SEARCH_MAX_PAGES = 1;
 
 const formatRecommendationSource = (source: string) => {
     if (source === "AI") return "AI";
@@ -969,17 +973,17 @@ const resolveAreaCenter = async (
     ]);
     const areaKeywordCandidates: KakaoKeywordResult[] = [];
     const seenAreaKeywordKeys = new Set<string>();
-    for (const query of areaQueries) {
-        const results = await keywordSearch(query, { size: 8 });
-        results.forEach((result) => {
-            const key = `${normalizeText(result.place_name || "")}::${normalizeText(result.address_name || result.road_address_name || "")}`;
-            if (seenAreaKeywordKeys.has(key)) {
-                return;
-            }
-            seenAreaKeywordKeys.add(key);
-            areaKeywordCandidates.push(result);
-        });
-    }
+    const areaKeywordResults = await Promise.all(
+        areaQueries.map((query) => keywordSearch(query, { size: 8 })),
+    );
+    areaKeywordResults.flat().forEach((result) => {
+        const key = `${normalizeText(result.place_name || "")}::${normalizeText(result.address_name || result.road_address_name || "")}`;
+        if (seenAreaKeywordKeys.has(key)) {
+            return;
+        }
+        seenAreaKeywordKeys.add(key);
+        areaKeywordCandidates.push(result);
+    });
     const bestAreaKeyword = pickBestAreaCenterCandidate(areaHint, areaKeywordCandidates);
     if (
         bestAreaKeyword
@@ -995,13 +999,8 @@ const resolveAreaCenter = async (
         };
     }
 
-    const areaAddressCandidates: Array<{ x: string; y: string; address_name?: string }> = [];
-    for (const query of areaQueries) {
-        const results = await addressSearch(query);
-        if (results.length > 0) {
-            areaAddressCandidates.push(...results);
-        }
-    }
+    const areaAddressResults = await Promise.all(areaQueries.map((query) => addressSearch(query)));
+    const areaAddressCandidates = areaAddressResults.flat();
     const normalizedHint = areaHint.replace(/\s+/g, "").toLowerCase();
     const addressResult = areaAddressCandidates.find((candidate) =>
         Boolean(candidate.x && candidate.y)
@@ -1051,35 +1050,55 @@ const verifyCategoriesWithKakao = async (
             );
         });
 
+    const keywordSearchPagesCache = new Map<string, Promise<KakaoKeywordResult[]>>();
+
     const keywordSearchPages = async (
         query: string,
         options: Record<string, unknown> = {},
-        maxPages = 2,
+        maxPages = DEFAULT_SEARCH_MAX_PAGES,
     ) => {
-        const collected: KakaoKeywordResult[] = [];
-        const seen = new Set<string>();
-
-        for (let page = 1; page <= maxPages; page += 1) {
-            const pageResults = await keywordSearch(query, { ...options, page });
-            if (!pageResults.length) {
-                break;
-            }
-
-            pageResults.forEach((result) => {
-                const key = `${normalizeText(result.place_name || "")}::${normalizeText(result.address_name || result.road_address_name || "")}`;
-                if (seen.has(key)) {
-                    return;
-                }
-                seen.add(key);
-                collected.push(result);
-            });
-
-            if (pageResults.length < 15) {
-                break;
-            }
+        const sanitizedQuery = sanitizeKakaoQuery(query);
+        if (!sanitizedQuery) {
+            return [];
         }
 
-        return collected;
+        const cacheKey = `${sanitizedQuery}::${JSON.stringify(options)}::${maxPages}`;
+        const cachedPromise = keywordSearchPagesCache.get(cacheKey);
+        if (cachedPromise) {
+            return cachedPromise;
+        }
+
+        const requestPromise = (async () => {
+            const collected: KakaoKeywordResult[] = [];
+            const seen = new Set<string>();
+
+            for (let page = 1; page <= maxPages; page += 1) {
+                const pageResults = await keywordSearch(sanitizedQuery, { ...options, page });
+                if (!pageResults.length) {
+                    break;
+                }
+
+                pageResults.forEach((result) => {
+                    const key = `${normalizeText(result.place_name || "")}::${normalizeText(result.address_name || result.road_address_name || "")}`;
+                    if (seen.has(key)) {
+                        return;
+                    }
+                    seen.add(key);
+                    collected.push(result);
+                });
+
+                if (pageResults.length < DEFAULT_SEARCH_PAGE_SIZE) {
+                    break;
+                }
+            }
+
+            return collected;
+        })();
+
+        keywordSearchPagesCache.set(cacheKey, requestPromise);
+
+        const results = await requestPromise;
+        return results;
     };
 
     const resolvedPlaces: Record<string, ResolvedKakaoPlace> = {};
@@ -1098,35 +1117,38 @@ const verifyCategoriesWithKakao = async (
                 buildMapQuery(item.name, item.address, areaHint),
                 [item.name, areaHint].filter(Boolean).join(" ").trim(),
                 item.name,
-            ]);
+            ]).slice(0, ITEM_QUERY_LIMIT);
 
-            let bestMatch: ScoredKeywordResult | null = null;
-
-            for (const query of queries) {
-                const results = await keywordSearchPages(
-                    query,
-                    areaCenter
-                        ? {
-                            x: areaCenter.x,
-                            y: areaCenter.y,
-                            radius: areaCenter.radius,
-                            sort: kakao.maps.services.SortBy.DISTANCE,
-                            size: 15,
-                        }
-                        : { size: 15 },
-                    2,
-                );
-                const candidate = pickBestKeywordResult(
-                    item,
-                    results.slice(0, 25),
-                    areaHint,
-                    query,
-                    areaCenter,
-                );
-                if (candidate && (!bestMatch || candidate.score > bestMatch.score)) {
-                    bestMatch = candidate;
+            const searchOptions = areaCenter
+                ? {
+                    x: areaCenter.x,
+                    y: areaCenter.y,
+                    radius: areaCenter.radius,
+                    sort: kakao.maps.services.SortBy.DISTANCE,
+                    size: DEFAULT_SEARCH_PAGE_SIZE,
                 }
-            }
+                : { size: DEFAULT_SEARCH_PAGE_SIZE };
+            const candidateMatches = await Promise.all(
+                queries.map(async (query) => {
+                    const results = await keywordSearchPages(query, searchOptions, DEFAULT_SEARCH_MAX_PAGES);
+                    return pickBestKeywordResult(
+                        item,
+                        results.slice(0, 20),
+                        areaHint,
+                        query,
+                        areaCenter,
+                    );
+                }),
+            );
+            const bestMatch = candidateMatches.reduce<ScoredKeywordResult | null>((best, candidate) => {
+                if (!candidate) {
+                    return best;
+                }
+                if (!best || candidate.score > best.score) {
+                    return candidate;
+                }
+                return best;
+            }, null);
 
             if (!bestMatch || bestMatch.score < MATCH_THRESHOLD) {
                 droppedCount += 1;
@@ -1188,7 +1210,8 @@ const verifyCategoriesWithKakao = async (
         }
 
         if (nextPlaces.length < CATEGORY_PLACE_TARGET) {
-            const replacementQueries = buildCategoryQueries(category.key, areaHint, planHint);
+            const replacementQueries = buildCategoryQueries(category.key, areaHint, planHint)
+                .slice(0, REPLACEMENT_QUERY_LIMIT);
 
             for (const query of replacementQueries) {
                 if (nextPlaces.length >= CATEGORY_PLACE_TARGET) {
@@ -1203,10 +1226,10 @@ const verifyCategoriesWithKakao = async (
                             y: areaCenter.y,
                             radius: areaCenter.radius,
                             sort: kakao.maps.services.SortBy.DISTANCE,
-                            size: 15,
+                            size: DEFAULT_SEARCH_PAGE_SIZE,
                         }
-                        : { size: 15 },
-                    3,
+                        : { size: DEFAULT_SEARCH_PAGE_SIZE },
+                    DEFAULT_SEARCH_MAX_PAGES,
                 );
 
                 for (const result of results) {

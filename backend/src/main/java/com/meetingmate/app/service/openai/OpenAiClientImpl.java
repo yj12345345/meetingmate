@@ -101,7 +101,7 @@ public class OpenAiClientImpl implements OpenAiClient {
 
                         Hard rules:
                         - Follow the requested category keys and their exact order from the prompt.
-                        - Provide 5 places per category when possible. If fewer than 5 are truly high-confidence, provide 3 or 4 instead of guessing.
+                        - Provide 3 places per category when possible. If fewer than 3 are truly high-confidence, provide 2 instead of guessing.
                         - All descriptive text must be natural Korean, but think in English and follow these rules strictly.
                         - Never invent a venue, branch, street-market name, district nickname, or generic label.
                         - Never output placeholders or combinations like "Sinchon Korean Restaurant", "Jamsil Roastery Cafe", "props street", or "VR experience center".
