@@ -1860,7 +1860,20 @@ export default function ResultPage() {
     };
 
     const handleRefresh = () => {
+        if (loading) {
+            return;
+        }
         clearRecommendationCache(cacheKey);
+        setCategories([]);
+        setSelectedPlaces({});
+        setResolvedPlaces({});
+        setWarning("");
+        setError("");
+        setMapWarning("");
+        setShareMessage("");
+        setRecommendationSource("");
+        setIsCachedView(false);
+        setLoading(true);
         setRefreshNonce((current) => current + 1);
     };
 
