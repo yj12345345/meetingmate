@@ -40,7 +40,7 @@ function App() {
                     }
                 />
                 <Route
-                    path="/selected-route"
+                    path="/selected-route*"
                     element={
                         <ProtectedRoute>
                             <SelectedRoutePage />

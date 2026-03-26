@@ -11,6 +11,7 @@ import {
     saveRecommendationCache,
     type RecommendationCacheEntry,
 } from "../utils/recommendationCache";
+import { buildSelectedRouteShareUrl } from "../utils/selectedRouteShare";
 import type {
     KeywordRecommendResult,
     KeywordRecommendation,
@@ -1905,14 +1906,20 @@ export default function ResultPage() {
             return;
         }
 
-        navigate("/selected-route", {
+        const nextState = {
+            keyword,
+            meetingType,
+            mood,
+            location: areaHint,
+            planHint,
+            selectedPlaces: selectedPlaceList,
+        };
+        const shareUrl = buildSelectedRouteShareUrl(nextState, window.location.origin);
+        const shareSearch = new URL(shareUrl).search;
+
+        navigate(`/selected-route${shareSearch}`, {
             state: {
-                keyword,
-                meetingType,
-                mood,
-                location: areaHint,
-                planHint,
-                selectedPlaces: selectedPlaceList,
+                ...nextState,
             },
         });
     };
