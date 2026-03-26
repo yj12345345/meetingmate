@@ -24,7 +24,7 @@ export type RecommendationCacheEntry = {
     savedAt: number;
 };
 
-const PREFIX = "meetingmate:recommendation:v9";
+const PREFIX = "meetingmate:recommendation:v10";
 
 const getUserScope = () => {
     const token = localStorage.getItem("accessToken");

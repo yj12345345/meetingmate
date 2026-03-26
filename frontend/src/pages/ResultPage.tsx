@@ -435,10 +435,11 @@ const matchesCategoryIntent = (
     }
     if (categoryKey === "BAR") {
         if (wantsQuietBar(normalizedPlanHint)) {
-            return containsAny(haystack, ["와인", "하이볼", "bar", "바", "라운지", "이자카야"])
-                && !containsAny(haystack, ["포차", "호프"]);
+            return containsAny(haystack, ["술집", "주점", "와인", "하이볼", "bar", "바", "라운지", "이자카야", "펍", "칵테일"])
+                && !containsAny(haystack, ["클럽", "나이트", "헌팅포차", "감성주점", "노래타운"]);
         }
-        return containsAny(haystack, ["술집", "주점", "포차", "호프", "이자카야", "와인", "맥주", "하이볼", "bar"]);
+        return containsAny(haystack, ["술집", "주점", "포차", "호프", "이자카야", "와인", "맥주", "하이볼", "bar", "펍"])
+            && !containsAny(haystack, ["노래타운"]);
     }
     if (categoryKey === "PC_ROOM") {
         return containsAny(haystack, ["pc", "피시", "인터넷", "게임"]);
@@ -526,7 +527,14 @@ const buildCategoryQueries = (
         seeds.push("놀거리", "오락실");
     }
 
-    return uniqueQueries(seeds.map((seed) => `${areaHint} ${seed}`.trim()));
+    const scopedQueries = seeds.map((seed) => `${areaHint} ${seed}`.trim());
+    if (areaHint.trim()) {
+        return uniqueQueries([
+            ...scopedQueries,
+            ...seeds.map((seed) => seed.trim()),
+        ]);
+    }
+    return uniqueQueries(scopedQueries);
 };
 
 type RouteState = {
@@ -546,6 +554,7 @@ type KakaoKeywordResult = {
     address_name?: string;
     phone?: string;
     category_name?: string;
+    category_group_code?: string;
 };
 
 type ScoredKeywordResult = {
@@ -603,6 +612,86 @@ const getMaxAllowedDistance = (areaCenter: AreaCenter) => areaCenter.maxDistance
 
 const getCategoryPinColor = (categoryKey: RecommendationCategoryKey | undefined) =>
     CATEGORY_PIN_COLOR[categoryKey || ""] || "#2563eb";
+
+const scoreAreaCenterCandidate = (
+    areaHint: string,
+    result: KakaoKeywordResult,
+) => {
+    const normalizedHint = areaHint.replace(/\s+/g, "").toLowerCase();
+    const normalizedName = (result.place_name || "").replace(/\s+/g, "").toLowerCase();
+    const normalizedAddress = `${result.address_name || ""} ${result.road_address_name || ""}`
+        .replace(/\s+/g, "")
+        .toLowerCase();
+    const categoryName = (result.category_name || "").toLowerCase();
+    const categoryGroupCode = (result.category_group_code || "").toUpperCase();
+
+    let score = 0;
+    if (!normalizedHint) {
+        return score;
+    }
+
+    if (normalizedName === normalizedHint) {
+        score += 30;
+    }
+    if (normalizedName === `${normalizedHint}역` || normalizedName.endsWith(`${normalizedHint}역`)) {
+        score += 40;
+    }
+    if (normalizedName.startsWith(normalizedHint)) {
+        score += 16;
+    }
+    if (normalizedName.includes(normalizedHint)) {
+        score += 10;
+    }
+    if (normalizedAddress.includes(normalizedHint)) {
+        score += 14;
+    }
+    if (categoryGroupCode === "SW8") {
+        score += 24;
+    }
+    if (containsAny(categoryName, ["지하철역", "역사", "행정동", "법정동", "주민센터", "사거리", "교차로"])) {
+        score += 12;
+    }
+
+    if (containsAny(`${normalizedName} ${categoryName}`, [
+        "카페",
+        "식당",
+        "맛집",
+        "피시",
+        "pc",
+        "노래방",
+        "술집",
+        "와인",
+        "바",
+        "마트",
+        "편의점",
+        "약국",
+        "병원",
+    ])) {
+        score -= 14;
+    }
+
+    if (normalizedName.length > normalizedHint.length + 8) {
+        score -= 2;
+    }
+
+    return score;
+};
+
+const pickBestAreaCenterCandidate = (
+    areaHint: string,
+    results: KakaoKeywordResult[],
+): { result: KakaoKeywordResult; score: number } | null => {
+    let best: { result: KakaoKeywordResult; score: number } | null = null;
+
+    results.forEach((result) => {
+        const score = scoreAreaCenterCandidate(areaHint, result);
+        if (!best || score > best.score) {
+            best = { result, score };
+        }
+    });
+
+    return best;
+};
 
 const createMarkerImage = (kakao: any, color: string) => {
     const svg = `
@@ -814,8 +903,8 @@ const resolveAreaCenter = async (
         });
 
     const addressSearch = (query: string) =>
-        new Promise<Array<{ x: string; y: string }>>((resolve) => {
-            geocoder.addressSearch(query, (results: Array<{ x: string; y: string }>, status: string) => {
+        new Promise<Array<{ x: string; y: string; address_name?: string }>>((resolve) => {
+            geocoder.addressSearch(query, (results: Array<{ x: string; y: string; address_name?: string }>, status: string) => {
                 if (status === kakao.maps.services.Status.OK && Array.isArray(results)) {
                     resolve(results);
                     return;
@@ -825,17 +914,52 @@ const resolveAreaCenter = async (
         });
 
     const radius = getAreaRadius(areaHint, maxDistanceMeters);
-    const areaResult = (await keywordSearch(areaHint, { size: 3 }))[0];
-    if (areaResult?.x && areaResult?.y) {
+    const areaQueries = uniqueQueries([
+        `${areaHint}역`,
+        areaHint,
+        `${areaHint}동`,
+        `${areaHint}사거리`,
+    ]);
+    const areaKeywordCandidates: KakaoKeywordResult[] = [];
+    const seenAreaKeywordKeys = new Set<string>();
+    for (const query of areaQueries) {
+        const results = await keywordSearch(query, { size: 8 });
+        results.forEach((result) => {
+            const key = `${normalizeText(result.place_name || "")}::${normalizeText(result.address_name || result.road_address_name || "")}`;
+            if (seenAreaKeywordKeys.has(key)) {
+                return;
+            }
+            seenAreaKeywordKeys.add(key);
+            areaKeywordCandidates.push(result);
+        });
+    }
+    const bestAreaKeyword = pickBestAreaCenterCandidate(areaHint, areaKeywordCandidates);
+    if (
+        bestAreaKeyword
+        && bestAreaKeyword.score >= 8
+        && bestAreaKeyword.result.x
+        && bestAreaKeyword.result.y
+    ) {
         return {
-            x: Number(areaResult.x),
-            y: Number(areaResult.y),
+            x: Number(bestAreaKeyword.result.x),
+            y: Number(bestAreaKeyword.result.y),
             radius,
             maxDistance: radius,
         };
     }
 
-    const addressResult = (await addressSearch(areaHint))[0];
+    const areaAddressCandidates: Array<{ x: string; y: string; address_name?: string }> = [];
+    for (const query of areaQueries) {
+        const results = await addressSearch(query);
+        if (results.length > 0) {
+            areaAddressCandidates.push(...results);
+        }
+    }
+    const normalizedHint = areaHint.replace(/\s+/g, "").toLowerCase();
+    const addressResult = areaAddressCandidates.find((candidate) =>
+        Boolean(candidate.x && candidate.y)
+        && (candidate.address_name || "").replace(/\s+/g, "").toLowerCase().includes(normalizedHint),
+    ) || areaAddressCandidates.find((candidate) => Boolean(candidate.x && candidate.y));
     if (addressResult?.x && addressResult?.y) {
         return {
             x: Number(addressResult.x),
@@ -880,6 +1004,37 @@ const verifyCategoriesWithKakao = async (
             );
         });
 
+    const keywordSearchPages = async (
+        query: string,
+        options: Record<string, unknown> = {},
+        maxPages = 2,
+    ) => {
+        const collected: KakaoKeywordResult[] = [];
+        const seen = new Set<string>();
+
+        for (let page = 1; page <= maxPages; page += 1) {
+            const pageResults = await keywordSearch(query, { ...options, page });
+            if (!pageResults.length) {
+                break;
+            }
+
+            pageResults.forEach((result) => {
+                const key = `${normalizeText(result.place_name || "")}::${normalizeText(result.address_name || result.road_address_name || "")}`;
+                if (seen.has(key)) {
+                    return;
+                }
+                seen.add(key);
+                collected.push(result);
+            });
+
+            if (pageResults.length < 15) {
+                break;
+            }
+        }
+
+        return collected;
+    };
+
     const resolvedPlaces: Record<string, ResolvedKakaoPlace> = {};
     let droppedCount = 0;
     let replacedCount = 0;
@@ -901,7 +1056,7 @@ const verifyCategoriesWithKakao = async (
             let bestMatch: ScoredKeywordResult | null = null;
 
             for (const query of queries) {
-                const results = await keywordSearch(
+                const results = await keywordSearchPages(
                     query,
                     areaCenter
                         ? {
@@ -909,13 +1064,14 @@ const verifyCategoriesWithKakao = async (
                             y: areaCenter.y,
                             radius: areaCenter.radius,
                             sort: kakao.maps.services.SortBy.DISTANCE,
-                            size: 10,
+                            size: 15,
                         }
-                        : { size: 10 },
+                        : { size: 15 },
+                    2,
                 );
                 const candidate = pickBestKeywordResult(
                     item,
-                    results.slice(0, 10),
+                    results.slice(0, 25),
                     areaHint,
                     query,
                     areaCenter,
@@ -992,7 +1148,7 @@ const verifyCategoriesWithKakao = async (
                     break;
                 }
 
-                const results = await keywordSearch(
+                const results = await keywordSearchPages(
                     query,
                     areaCenter
                         ? {
@@ -1003,6 +1159,7 @@ const verifyCategoriesWithKakao = async (
                             size: 15,
                         }
                         : { size: 15 },
+                    3,
                 );
 
                 for (const result of results) {
