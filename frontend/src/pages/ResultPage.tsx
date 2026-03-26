@@ -12,6 +12,7 @@ import {
     type RecommendationCacheEntry,
 } from "../utils/recommendationCache";
 import type {
+    KeywordRecommendResult,
     KeywordRecommendation,
     KeywordRecommendationCategory,
     RecommendationCategoryKey,
@@ -99,6 +100,22 @@ const escapeHtml = (value: string) =>
 
 const sortCategories = (categories: KeywordRecommendationCategory[]) =>
     [...categories];
+
+const normalizeKeywordRecommendResult = (value: unknown): KeywordRecommendResult => {
+    const candidate = (value && typeof value === "object")
+        ? (value as Partial<KeywordRecommendResult>)
+        : {};
+
+    return {
+        recommendations: Array.isArray(candidate.recommendations) ? candidate.recommendations : [],
+        categories: Array.isArray(candidate.categories) ? candidate.categories : [],
+        routes: Array.isArray(candidate.routes) ? candidate.routes : [],
+        source: typeof candidate.source === "string" ? candidate.source : "",
+        warning: typeof candidate.warning === "string" || candidate.warning === null
+            ? candidate.warning
+            : undefined,
+    };
+};
 
 const buildInitialSelections = (categories: KeywordRecommendationCategory[]) => {
     const entries = categories
@@ -1519,12 +1536,23 @@ export default function ResultPage() {
             setIsCachedView(false);
 
             try {
-                const result = await recommendByKeyword(requestParams);
+                const rawResult = await recommendByKeyword(requestParams);
+                const result = normalizeKeywordRecommendResult(rawResult);
                 if (!active) {
                     return;
                 }
 
-                const rawCategories = sortCategories(result.categories || []);
+                const rawCategories = sortCategories(result.categories);
+                if (!rawCategories.length) {
+                    setCategories([]);
+                    setSelectedPlaces({});
+                    setResolvedPlaces({});
+                    setRecommendationSource(result.source || "");
+                    setWarning(result.warning || "");
+                    setError("추천 결과가 비어 있습니다. 조건을 조금 더 구체적으로 입력해 주세요.");
+                    return;
+                }
+
                 const appKey = import.meta.env.VITE_KAKAO_MAP_API_KEY;
 
                 if (!appKey) {
@@ -1541,6 +1569,10 @@ export default function ResultPage() {
 
                 if (!active) {
                     return;
+                }
+
+                if (!verification || !Array.isArray(verification.categories)) {
+                    throw new Error("추천 장소 검증 결과를 해석하지 못했습니다. 다시 시도해 주세요.");
                 }
 
                 if (!verification.categories.length) {
