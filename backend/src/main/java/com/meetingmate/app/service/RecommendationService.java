@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class RecommendationService {
 
-    private static final int CATEGORY_PLACE_TARGET = 5;
+    private static final int CATEGORY_PLACE_TARGET = 3;
     private static final List<String> DEFAULT_CATEGORY_ORDER = List.of("RESTAURANT", "CAFE", "ACTIVITY");
     private static final List<String> CATEGORY_ORDER = List.of("PC_ROOM", "RESTAURANT", "CAFE", "BAR", "KARAOKE", "SHOPPING", "ACTIVITY");
     private static final Set<String> GENERIC_AREA_HINTS = Set.of(
@@ -232,7 +232,7 @@ public class RecommendationService {
 
                 Instructions:
                 1. Recommend only the requested category keys and keep the exact order.
-                2. For each category, return 5 real venues when possible. If fewer than 5 truly high-confidence venues exist, return 3 or 4 instead of guessing.
+                2. For each category, return 3 real venues when possible. If fewer than 3 truly high-confidence venues exist, return 2 instead of guessing.
                 3. Treat the concrete flow/menu/style/exclusion request as the highest-priority constraint.
                 4. Treat meeting type and vibe only as secondary tie-breakers. Never let a vague vibe word override explicit cuisine, dessert, or route instructions.
                 5. If the user asks for western, Italian, pasta, steak, bistro, cake, dessert, bakery, wine, samgyeopsal, coin karaoke, or similar specific styles, stay inside that style. Do not switch to unrelated chicken, seafood, soup restaurants, generic Korean diners, wholesalers, gardens, or convenience-style venues unless explicitly requested.
