@@ -4,6 +4,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { recommendRoutesFromSelections } from "../api/recommendation";
 import Button from "../components/Button";
 import Header from "../components/Header";
+import {
+    buildSelectedRouteShareUrl,
+    decodeSelectedRouteShareState,
+} from "../utils/selectedRouteShare";
 import type {
     KeywordRecommendation,
     KeywordRecommendationRoute,
@@ -149,15 +153,23 @@ export default function SelectedRoutePage() {
     const location = useLocation();
     const navigate = useNavigate();
     const routeState = (location.state || {}) as SelectedRouteLocationState;
+    const searchParams = useMemo(
+        () => new URLSearchParams(location.search),
+        [location.search],
+    );
+    const sharedState = useMemo(
+        () => decodeSelectedRouteShareState(searchParams.get("s")),
+        [searchParams],
+    );
 
     const initialSelectedPlaces = useMemo(
         () =>
-            [...(routeState.selectedPlaces || [])].sort(
+            [...((routeState.selectedPlaces?.length ? routeState.selectedPlaces : sharedState?.selectedPlaces) || [])].sort(
                 (left, right) =>
                     CATEGORY_ORDER.indexOf(left.category || "ACTIVITY")
                     - CATEGORY_ORDER.indexOf(right.category || "ACTIVITY"),
             ),
-        [routeState.selectedPlaces],
+        [routeState.selectedPlaces, sharedState?.selectedPlaces],
     );
 
     const [selectedPlaces, setSelectedPlaces] = useState<KeywordRecommendation[]>(initialSelectedPlaces);
@@ -169,11 +181,11 @@ export default function SelectedRoutePage() {
     const [loading, setLoading] = useState(false);
     const [activeRouteIndex, setActiveRouteIndex] = useState(0);
 
-    const keyword = routeState.keyword || routeState.location || "";
-    const meetingType = routeState.meetingType || "";
-    const mood = routeState.mood || "";
-    const area = routeState.location || "";
-    const planHint = routeState.planHint || "";
+    const keyword = routeState.keyword || sharedState?.keyword || routeState.location || sharedState?.location || "";
+    const meetingType = routeState.meetingType || sharedState?.meetingType || "";
+    const mood = routeState.mood || sharedState?.mood || "";
+    const area = routeState.location || sharedState?.location || "";
+    const planHint = routeState.planHint || sharedState?.planHint || "";
     const meetingSummary = `${meetingType || "모임"} · ${mood || "분위기"} · ${keyword || area || "지역"}`;
 
     useEffect(() => {
@@ -240,10 +252,19 @@ export default function SelectedRoutePage() {
     );
 
     const handleShare = async () => {
-        const shareUrl = window.location.href;
+        const shareUrl = buildSelectedRouteShareUrl(
+            {
+                keyword,
+                meetingType,
+                mood,
+                location: area,
+                planHint,
+                selectedPlaces,
+            },
+            window.location.origin,
+        );
         const shareData = {
             title: "Meeting Mate 선택 장소 플랜",
-            text: `${meetingSummary} 기준으로 다시 짠 플랜`,
             url: shareUrl,
         };
 
