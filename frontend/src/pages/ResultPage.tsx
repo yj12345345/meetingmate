@@ -198,6 +198,35 @@ const GENERIC_AREA_HINTS = new Set([
     "주위",
     "지역",
 ]);
+const GENERIC_LOCATION_TERMS = new Set([
+    "맛집",
+    "식당",
+    "양식",
+    "양식집",
+    "일식",
+    "일식집",
+    "한식",
+    "한식집",
+    "중식",
+    "중식집",
+    "고깃집",
+    "술집",
+    "카페",
+    "디저트",
+    "모텔",
+    "호텔",
+    "숙소",
+    "노래방",
+    "코인노래방",
+    "코노",
+    "pc방",
+    "피시방",
+    "쇼핑",
+    "놀거리",
+    "데이트",
+    "모임",
+    "여행",
+]);
 const AREA_STOPWORDS = new Set([
     "친구",
     "연인",
@@ -308,7 +337,16 @@ const resolveAreaHint = (preferredLocation: string, keyword: string, planHint: s
             return "";
         }
         const normalized = sanitized.replace(/\s+/g, "").toLowerCase();
-        return GENERIC_AREA_HINTS.has(normalized) ? "" : sanitized;
+        if (GENERIC_AREA_HINTS.has(normalized)) {
+            return "";
+        }
+        if (GENERIC_LOCATION_TERMS.has(normalized)) {
+            return "";
+        }
+        if (normalized.endsWith("맛집") || normalized.endsWith("식당") || normalized.endsWith("카페")) {
+            return "";
+        }
+        return sanitized;
     };
 
     const explicitFromText = normalizeAreaCandidate(extractAreaFromText(preferredLocation));
@@ -316,6 +354,11 @@ const resolveAreaHint = (preferredLocation: string, keyword: string, planHint: s
 
     const explicit = normalizeAreaCandidate(preferredLocation);
     if (explicit) return explicit;
+
+    // If location input exists but is generic (e.g. 양식집), do not infer from keyword/plan hint.
+    if (preferredLocation.trim()) {
+        return "";
+    }
 
     const fromKeyword = normalizeAreaCandidate(extractAreaFromText(keyword));
     if (fromKeyword) return fromKeyword;
@@ -1494,7 +1537,7 @@ export default function ResultPage() {
             })),
         [visibleCategories],
     );
-    const headlineArea = areaHint || preferredLocation || "";
+    const headlineArea = preferredLocation || areaHint || "";
     const meetingSummary = [meetingType || "모임", mood, headlineArea]
         .filter(Boolean)
         .join(" · ");
@@ -1506,6 +1549,18 @@ export default function ResultPage() {
             setSelectedPlaces({});
             setResolvedPlaces({});
             setError("추천에 필요한 키워드가 없습니다.");
+            setWarning("");
+            setRecommendationSource("");
+            setLoading(false);
+            setIsCachedView(false);
+            return;
+        }
+
+        if (preferredLocation.trim() && !areaHint.trim()) {
+            setCategories([]);
+            setSelectedPlaces({});
+            setResolvedPlaces({});
+            setError("중심 지역에는 지명(예: 왕십리, 신촌, 잠실, 을지로3가)을 입력해 주세요.");
             setWarning("");
             setRecommendationSource("");
             setLoading(false);
@@ -1644,7 +1699,7 @@ export default function ResultPage() {
         return () => {
             active = false;
         };
-    }, [areaHint, cacheKey, keyword, maxDistanceMeters, refreshNonce, requestParams, planHint]);
+    }, [areaHint, cacheKey, keyword, maxDistanceMeters, refreshNonce, requestParams, planHint, preferredLocation]);
 
     useEffect(() => {
         if (!hasRecommendations) {
