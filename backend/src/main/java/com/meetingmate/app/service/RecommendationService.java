@@ -43,6 +43,11 @@ public class RecommendationService {
             "친구", "연인", "가족", "모임", "여행", "관광", "동선", "메뉴",
             "맛집", "카페", "식당", "술집", "코스", "근처", "주변", "인근", "일대", "부근"
     );
+    private static final Set<String> GENERIC_LOCATION_TERMS = Set.of(
+            "맛집", "식당", "양식", "양식집", "일식", "일식집", "한식", "한식집", "중식", "중식집",
+            "고깃집", "술집", "카페", "디저트", "모텔", "호텔", "숙소", "노래방", "코인노래방",
+            "코노", "pc방", "피시방", "쇼핑", "놀거리", "데이트", "모임", "여행"
+    );
     private static final Map<String, String> CATEGORY_TITLES = Map.of(
             "RESTAURANT", "식당",
             "CAFE", "카페",
@@ -1299,6 +1304,12 @@ public class RecommendationService {
 
         String normalized = sanitized.replaceAll("\\s+", "").toLowerCase();
         if (GENERIC_AREA_HINTS.contains(normalized)) {
+            return "";
+        }
+        if (GENERIC_LOCATION_TERMS.contains(normalized)) {
+            return "";
+        }
+        if (normalized.endsWith("맛집") || normalized.endsWith("식당") || normalized.endsWith("카페")) {
             return "";
         }
 

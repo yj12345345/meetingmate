@@ -7,64 +7,44 @@ const MEETING_PRESETS = ["친구 모임", "연인 데이트", "직장 동료 모
 const MOOD_PRESETS = ["조용한", "활기찬", "감성적인", "가성비 좋은", "여유로운", "로컬 느낌"];
 
 const normalizeLine = (value: string) => value.replace(/\s+/g, " ").trim();
-const AREA_INLINE_PATTERN = /([가-힣A-Za-z0-9]{2,12})\s*(?:근처에서|근처|주변에서|주변|인근에서|인근|일대에서|일대|부근에서|부근|쪽에서|쪽|에서)/g;
-const AREA_SUFFIX_PATTERN = /^(?:[가-힣A-Za-z0-9]+)(역|동|구|시|군|읍|면|리)$/;
-const AREA_PREFIX_TRAVEL_PATTERN = /([가-힣A-Za-z0-9]{2,12})\s*(?:여행|데이트|나들이|모임)/g;
-const AREA_STOPWORDS = new Set([
-    "친구",
-    "연인",
-    "가족",
+const GENERIC_LOCATION_TERMS = new Set([
+    "맛집",
+    "식당",
+    "양식",
+    "양식집",
+    "일식",
+    "일식집",
+    "한식",
+    "한식집",
+    "중식",
+    "중식집",
+    "고깃집",
+    "술집",
+    "카페",
+    "디저트",
+    "모텔",
+    "호텔",
+    "숙소",
+    "노래방",
+    "코인노래방",
+    "코노",
+    "pc방",
+    "피시방",
+    "쇼핑",
+    "놀거리",
+    "데이트",
     "모임",
     "여행",
-    "관광",
-    "동선",
-    "메뉴",
-    "맛집",
-    "카페",
-    "식당",
-    "술집",
-    "코스",
-    "근처",
-    "주변",
-    "인근",
-    "일대",
-    "부근",
 ]);
 
-const extractAreaToken = (value: string) => {
-    const normalized = normalizeLine(value).replace(/[^\w\u3131-\u318E\uAC00-\uD7A3\s]/g, " ");
-    if (!normalized) return "";
-
-    const inlineMatches = normalized.matchAll(AREA_INLINE_PATTERN);
-    for (const match of inlineMatches) {
-        const candidate = normalizeLine(match[1] || "");
-        if (candidate.length >= 2 && !AREA_STOPWORDS.has(candidate)) {
-            return candidate.slice(0, 20);
-        }
-    }
-
-    const travelMatches = normalized.matchAll(AREA_PREFIX_TRAVEL_PATTERN);
-    for (const match of travelMatches) {
-        const candidate = normalizeLine(match[1] || "");
-        if (candidate.length >= 2 && !AREA_STOPWORDS.has(candidate)) {
-            return candidate.slice(0, 20);
-        }
-    }
-
-    const tokens = normalized.split(" ").filter(Boolean);
-    const bySuffix = tokens.find((token) => AREA_SUFFIX_PATTERN.test(token) && !AREA_STOPWORDS.has(token));
-    if (bySuffix) {
-        return bySuffix.slice(0, 20);
-    }
-
-    const firstLocationLikeToken = tokens.find((token) => {
-        if (token.length < 2) return false;
-        if (AREA_STOPWORDS.has(token)) return false;
-        if (/[0-9]/.test(token)) return false;
-        return true;
-    });
-
-    return firstLocationLikeToken ? firstLocationLikeToken.slice(0, 20) : "";
+const hasValidLocationToken = (value: string) => {
+    const normalized = normalizeLine(value);
+    if (!normalized) return false;
+    const compact = normalized.replace(/\s+/g, "").toLowerCase();
+    if (!compact) return false;
+    if (GENERIC_LOCATION_TERMS.has(compact)) return false;
+    if (compact.endsWith("맛집") || compact.endsWith("식당") || compact.endsWith("카페")) return false;
+    return true;
 };
 
 export default function SelectPage() {
@@ -78,11 +58,13 @@ export default function SelectPage() {
     const handleSubmit = () => {
         const normalizedLocation = normalizeLine(location);
         const normalizedRequest = normalizeLine(mainRequest);
-        const extractedLocation = extractAreaToken(normalizedLocation) || extractAreaToken(normalizedRequest);
-        const finalLocation = extractedLocation || normalizedLocation;
 
         if (!normalizedLocation) {
             alert("중심 지역을 먼저 입력해 주세요.");
+            return;
+        }
+        if (!hasValidLocationToken(normalizedLocation)) {
+            alert("중심 지역에는 지명(예: 왕십리, 신촌, 잠실, 을지로3가)을 입력해 주세요.");
             return;
         }
 
@@ -100,7 +82,7 @@ export default function SelectPage() {
 
         const searchParams = new URLSearchParams();
         searchParams.set("keyword", normalizedRequest);
-        searchParams.set("location", finalLocation);
+        searchParams.set("location", normalizedLocation);
         if (meetingType.trim()) searchParams.set("meetingType", normalizeLine(meetingType));
         if (mood.trim()) searchParams.set("mood", normalizeLine(mood));
         if (planHint.trim()) searchParams.set("planHint", planHint.trim());
@@ -109,7 +91,7 @@ export default function SelectPage() {
             state: {
                 meetingType: normalizeLine(meetingType),
                 mood: normalizeLine(mood),
-                location: finalLocation,
+                location: normalizedLocation,
                 planHint,
             },
         });
