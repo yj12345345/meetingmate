@@ -32,10 +32,17 @@ spring:
 server:
   forward-headers-strategy: framework
   port: ${SERVER_PORT:8080}
+  tomcat:
+    # Needed for tomcat_threads_* metrics (thread-pool saturation under load).
+    mbeanregistry:
+      enabled: true
 
 logging:
   level:
     root: INFO
+  pattern:
+    # Adds [requestId] to every log line (set by RequestIdFilter via MDC).
+    level: "%5p [%X{requestId:-}]"
 
 jwt:
   secret: ${JWT_SECRET:CHANGE_ME_TO_32+_BYTES_SECRET_CHANGE_ME_123456}
@@ -49,3 +56,31 @@ meetingmate:
 
 openai:
   model: ${OPENAI_MODEL:gpt-4o-mini}
+
+# --- Observability ---------------------------------------------------------
+# Actuator runs on a separate management port bound to localhost by default,
+# so it is never reachable through Nginx (which proxies only :8080).
+# The local docker-compose stack overrides MANAGEMENT_ADDRESS=0.0.0.0 so the
+# Prometheus container can scrape it; that port is never published publicly.
+management:
+  server:
+    port: ${MANAGEMENT_PORT:8081}
+    address: ${MANAGEMENT_ADDRESS:127.0.0.1}
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: meetingmate
+    distribution:
+      # Histogram buckets let Prometheus compute p50/p95/p99 across instances.
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 100ms,300ms,500ms,1s,3s

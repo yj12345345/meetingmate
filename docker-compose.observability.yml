@@ -1,0 +1,102 @@
+# Local observability / load-test stack. Runs ONLY on the developer machine.
+#
+#   cp .env.observability.example .env.observability   # then fill in values
+#   docker compose -f docker-compose.observability.yml --env-file .env.observability up -d --build
+#
+# Grafana     http://localhost:3000   (dashboard "MeetingMate / Backend Overview")
+# Prometheus  http://localhost:9090
+# Backend     http://localhost:8080   (runs the real `prod` profile)
+# MySQL       localhost:3307          (for EXPLAIN / slow-query analysis)
+#
+# All ports are bound to 127.0.0.1 so nothing is reachable from the network.
+# Resource limits roughly mimic a small EC2 instance so bottlenecks show up
+# locally the same way they would in production (override in the env file).
+
+name: meetingmate-obs
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: meetingmate
+      MYSQL_USER: meetingmate
+      MYSQL_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env.observability}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env.observability}
+    command:
+      - --slow_query_log=ON
+      - --long_query_time=0.2
+      - --slow_query_log_file=/var/lib/mysql/slow.log
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    mem_limit: ${MYSQL_MEM_LIMIT:-512m}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/meetingmate?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: meetingmate
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env.observability}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID:-local-dummy}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:-local-dummy}
+      MEETINGMATE_OPENAI_API_KEY: ${MEETINGMATE_OPENAI_API_KEY:-}
+      # Expose actuator inside the compose network only (port 8081 is not published
+      # except on localhost for debugging).
+      MANAGEMENT_ADDRESS: 0.0.0.0
+      JAVA_TOOL_OPTIONS: ${BACKEND_JAVA_OPTS:--XX:MaxRAMPercentage=60}
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8081:8081"
+    cpus: ${BACKEND_CPUS:-2}
+    mem_limit: ${BACKEND_MEM_LIMIT:-768m}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health/readiness || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env.observability}
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/meetingmate-backend.json
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  mysql-data:
+  prometheus-data:
+  grafana-data:
