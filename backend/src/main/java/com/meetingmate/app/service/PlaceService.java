@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -59,14 +61,27 @@ public class PlaceService {
     }
 
     public List<PlaceResponse> getPlaces(Long groupId) {
-        return placeRepository.findByGroupId(groupId).stream()
+        List<PlaceCandidate> places = placeRepository.findByGroupId(groupId);
+        if (places.isEmpty()) {
+            return List.of();
+        }
+
+        // One GROUP BY query for all vote counts instead of one COUNT per place (N+1).
+        Map<Long, Long> voteCounts = voteRepository
+                .countGroupedByPlaceIds(places.stream().map(PlaceCandidate::getId).toList())
+                .stream()
+                .collect(Collectors.toMap(
+                        PlaceVoteRepository.PlaceVoteCount::getPlaceId,
+                        PlaceVoteRepository.PlaceVoteCount::getVoteCount));
+
+        return places.stream()
                 .map(place -> PlaceResponse.builder()
                         .id(place.getId())
                         .name(place.getName())
                         .category(place.getCategory())
                         .lat(place.getLat())
                         .lng(place.getLng())
-                        .voteCount(voteRepository.countByPlaceId(place.getId()))
+                        .voteCount(voteCounts.getOrDefault(place.getId(), 0L))
                         .build()
                 ).toList();
     }

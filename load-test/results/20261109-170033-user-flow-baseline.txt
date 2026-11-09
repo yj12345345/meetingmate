@@ -1,0 +1,53 @@
+
+
+  █ THRESHOLDS 
+
+    flow_errors
+    ✓ 'rate<0.01' rate=0.00%
+
+    http_req_duration{type:api}
+    ✗ 'p(95)<500' p(95)=4.06s
+
+    http_req_failed{type:api}
+    ✓ 'rate<0.01' rate=0.00%
+
+    recommend_duration
+    ✗ 'p(95)<8000' p(95)=9.53s
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 3231    12.421326/s
+    checks_succeeded...: 100.00% 3231 out of 3231
+    checks_failed......: 0.00%   0 out of 3231
+
+    ✓ user_me 2xx
+    ✓ my_groups 2xx
+    ✓ group_detail 2xx
+    ✓ places 2xx
+    ✓ recommend 2xx
+
+    CUSTOM
+    flow_errors....................: 0.00%  0 out of 3231
+    recommend_duration.............: avg=5.03s  med=4.58s    p(90)=8.11s  p(95)=9.53s  p(99)=11.18s max=12.22s
+
+    HTTP
+    http_req_duration..............: avg=1.71s  med=755.42ms p(90)=4.97s  p(95)=6.35s  p(99)=9.24s  max=12.22s
+      { expected_response:true }...: avg=1.71s  med=755.42ms p(90)=4.97s  p(95)=6.35s  p(99)=9.24s  max=12.22s
+      { type:api }.................: avg=1.02s  med=350.87ms p(90)=3.08s  p(95)=4.06s  p(99)=6.01s  max=8.57s 
+    http_req_failed................: 0.00%  0 out of 3711
+      { type:api }.................: 0.00%  0 out of 3071
+    http_reqs......................: 3711   14.266648/s
+
+    EXECUTION
+    iteration_duration.............: avg=17.38s med=17.57s   p(90)=22.83s p(95)=24.37s p(99)=26.75s max=29s   
+    iterations.....................: 620    2.383541/s
+    vus............................: 1      min=0         max=60
+    vus_max........................: 60     min=60        max=60
+
+    NETWORK
+    data_received..................: 6.8 MB 26 kB/s
+    data_sent......................: 1.2 MB 4.7 kB/s
+
+
+

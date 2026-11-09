@@ -1,7 +1,11 @@
 # Local observability / load-test stack. Runs ONLY on the developer machine.
 #
 #   cp .env.observability.example .env.observability   # then fill in values
-#   docker compose -f docker-compose.observability.yml --env-file .env.observability up -d --build
+#   (cd backend && ./gradlew bootJar -x test)            # build the jar on the host
+#   docker compose -f docker-compose.observability.yml --env-file .env.observability up -d
+#
+# After a code change: rebuild the jar, then
+#   docker compose -f docker-compose.observability.yml --env-file .env.observability up -d --force-recreate backend
 #
 # Grafana     http://localhost:3000   (dashboard "MeetingMate / Backend Overview")
 # Prometheus  http://localhost:9090
@@ -38,8 +42,12 @@ services:
       retries: 30
 
   backend:
-    build:
-      context: ./backend
+    # Runs the jar built on the host (backend/build/libs) instead of building an image:
+    # redeploys take seconds and don't depend on downloading Gradle inside Docker.
+    image: eclipse-temurin:21-jre
+    command: ["java", "-jar", "/app/meetingmate-0.0.1-SNAPSHOT.jar"]
+    volumes:
+      - ./backend/build/libs:/app:ro
     depends_on:
       mysql:
         condition: service_healthy
@@ -51,7 +59,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env.observability}
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID:-local-dummy}
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:-local-dummy}
-      MEETINGMATE_OPENAI_API_KEY: ${MEETINGMATE_OPENAI_API_KEY:-}
+      # Never call the paid OpenAI API from the load-test stack: point at the mock.
+      OPENAI_BASE_URL: http://openai-mock:8080/v1
+      MEETINGMATE_OPENAI_API_KEY: mock-key
       # Expose actuator inside the compose network only (port 8081 is not published
       # except on localhost for debugging).
       MANAGEMENT_ADDRESS: 0.0.0.0
@@ -67,6 +77,16 @@ services:
       timeout: 3s
       retries: 30
       start_period: 30s
+
+  # Fake OpenAI chat-completions endpoint with realistic (lognormal ~3s) latency.
+  # Stage 2 changes its delay/fault settings to inject failures.
+  openai-mock:
+    image: wiremock/wiremock:3.13.1
+    command: ["--global-response-templating", "--no-request-journal"]
+    volumes:
+      - ./observability/openai-mock/mappings:/home/wiremock/mappings:ro
+    ports:
+      - "127.0.0.1:8089:8080"
 
   prometheus:
     image: prom/prometheus:v3.5.0

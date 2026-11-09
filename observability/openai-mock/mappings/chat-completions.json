@@ -1,0 +1,32 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/chat/completions"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "chatcmpl-mock",
+      "object": "chat.completion",
+      "model": "gpt-4o-mini",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"categories\": [{\"key\": \"RESTAURANT\", \"title\": \"식사\", \"description\": \"모임 전에 든든하게 먹기 좋은 곳입니다.\", \"places\": [{\"name\": \"홍대 진미식당\", \"address\": \"서울 마포구 와우산로21길 19\", \"reason\": \"단체석이 넉넉합니다.\", \"tags\": [\"#단체\", \"#한식\"], \"mapQuery\": \"진미식당 서교동\"}, {\"name\": \"연남동 하하\", \"address\": \"서울 마포구 동교로46길 33\", \"reason\": \"분위기가 편안합니다.\", \"tags\": [\"#중식\", \"#연남동\"], \"mapQuery\": \"하하 연남동\"}]}, {\"key\": \"CAFE\", \"title\": \"카페\", \"description\": \"식사 후 이야기 나누기 좋은 곳입니다.\", \"places\": [{\"name\": \"앤트러사이트 서교점\", \"address\": \"서울 마포구 토정로5길 10\", \"reason\": \"좌석 간격이 넓습니다.\", \"tags\": [\"#카페\", \"#넓은좌석\"], \"mapQuery\": \"앤트러사이트 서교점\"}, {\"name\": \"테일러커피 서교2호점\", \"address\": \"서울 마포구 잔다리로 62\", \"reason\": \"커피 맛이 좋습니다.\", \"tags\": [\"#스페셜티\", \"#홍대\"], \"mapQuery\": \"테일러커피 서교2호점\"}]}], \"routes\": [{\"title\": \"든든한 식사 후 카페\", \"summary\": \"식사 후 근처 카페로 이동합니다.\", \"fitReason\": \"대화 위주 모임에 맞습니다.\", \"steps\": [{\"order\": 1, \"category\": \"RESTAURANT\", \"placeName\": \"홍대 진미식당\", \"address\": \"서울 마포구 와우산로21길 19\", \"reason\": \"먼저 식사합니다.\", \"mapQuery\": \"진미식당 서교동\"}, {\"order\": 2, \"category\": \"CAFE\", \"placeName\": \"앤트러사이트 서교점\", \"address\": \"서울 마포구 토정로5길 10\", \"reason\": \"이어서 대화합니다.\", \"mapQuery\": \"앤트러사이트 서교점\"}]}, {\"title\": \"연남동 산책 코스\", \"summary\": \"연남동에서 식사 후 커피를 마십니다.\", \"fitReason\": \"가벼운 모임에 맞습니다.\", \"steps\": [{\"order\": 1, \"category\": \"RESTAURANT\", \"placeName\": \"연남동 하하\", \"address\": \"서울 마포구 동교로46길 33\", \"reason\": \"가볍게 식사합니다.\", \"mapQuery\": \"하하 연남동\"}, {\"order\": 2, \"category\": \"CAFE\", \"placeName\": \"테일러커피 서교2호점\", \"address\": \"서울 마포구 잔다리로 62\", \"reason\": \"커피로 마무리합니다.\", \"mapQuery\": \"테일러커피 서교2호점\"}]}]}"
+          },
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    "delayDistribution": {
+      "type": "lognormal",
+      "median": 3000,
+      "sigma": 0.4
+    }
+  }
+}

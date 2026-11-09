@@ -12,6 +12,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+// Login paths: local login (email + provider) and Kakao login (provider_id + provider).
+@Table(indexes = {
+        @Index(name = "idx_user_email_provider", columnList = "email, provider"),
+        @Index(name = "idx_user_provider_id_provider", columnList = "provider_id, provider")
+})
 public class User {
 
     @Id

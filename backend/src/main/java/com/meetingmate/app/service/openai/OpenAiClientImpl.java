@@ -22,7 +22,13 @@ import java.util.Map;
 public class OpenAiClientImpl implements OpenAiClient {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final WebClient webClient = WebClient.create("https://api.openai.com/v1");
+    private final WebClient webClient;
+
+    // Base URL is configurable so the local load-test stack can point at a mock
+    // server instead of the paid OpenAI API. Production keeps the default.
+    public OpenAiClientImpl(@Value("${openai.base-url:https://api.openai.com/v1}") String baseUrl) {
+        this.webClient = WebClient.create(baseUrl);
+    }
 
     @Value("${meetingmate.openai-api-key}")
     private String apiKey;

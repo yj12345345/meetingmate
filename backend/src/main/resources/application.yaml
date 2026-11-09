@@ -24,6 +24,10 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
+    # OSIV off: with it on, a request keeps its DB connection until the response is
+    # written, so /api/recommend held a connection for the whole ~3s OpenAI call and
+    # starved the 10-connection pool (load test 2026-11-09, see docs/ops-log).
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
@@ -55,6 +59,7 @@ meetingmate:
   openai-api-key: ${MEETINGMATE_OPENAI_API_KEY:}
 
 openai:
+  base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
   model: ${OPENAI_MODEL:gpt-4o-mini}
 
 # --- Observability ---------------------------------------------------------

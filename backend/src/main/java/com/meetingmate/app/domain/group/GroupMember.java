@@ -12,7 +12,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "group_members")
+// GET /api/groups/me looks memberships up by user_id.
+@Table(name = "group_members", indexes = @Index(name = "idx_group_members_user_id", columnList = "user_id"))
 public class GroupMember {
 
     @Id

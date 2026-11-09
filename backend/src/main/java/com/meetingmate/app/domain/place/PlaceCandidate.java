@@ -8,6 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+// GET /api/groups/{id}/places filters by group_id on every call.
+@Table(indexes = @Index(name = "idx_place_candidate_group_id", columnList = "group_id"))
 public class PlaceCandidate {
 
     @Id
