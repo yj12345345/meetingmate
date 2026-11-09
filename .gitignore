@@ -1,16 +1,20 @@
 # OS
 .DS_Store
 
-# docker env
+# docker env / local secrets
 .env
+.env.*
+!*.example
+*.env
 
 # logs
 *.log
 
 # secrets
 *.pem
-application-prod.yml
-application-local.yml
+*.key
+*.p12
+*.jks
 
 # node
 node_modules
