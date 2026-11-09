@@ -1,0 +1,57 @@
+
+
+  █ THRESHOLDS 
+
+    flow_errors
+    ✓ 'rate<0.01' rate=0.00%
+
+    http_req_duration{type:api}
+    ✓ 'p(95)<500' p(95)=120.95ms
+
+    http_req_failed{type:api}
+    ✓ 'rate<0.01' rate=0.00%
+
+    recommend_duration
+    ✓ 'p(95)<8000' p(95)=6.17s
+
+    selected_route_duration
+    ✓ 'p(95)<8000' p(95)=6.61s
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 1424    5.404231/s
+    checks_succeeded...: 100.00% 1424 out of 1424
+    checks_failed......: 0.00%   0 out of 1424
+
+    ✓ login 2xx
+    ✓ recommend 2xx
+    ✓ selected_routes 2xx
+    ✓ user_me 2xx
+
+    CUSTOM
+    flow_errors....................: 0.00%  0 out of 1424
+    recommend_duration.............: avg=3.6s    med=3.34s   p(90)=5.39s   p(95)=6.17s    p(99)=7.36s    max=11.32s  
+    recommend_source...............: 544    2.064538/s
+    selected_route_duration........: avg=3.58s   med=3.31s   p(90)=5.53s   p(95)=6.61s    p(99)=8.61s    max=11.58s  
+
+    HTTP
+    http_req_duration..............: avg=2.54s   med=2.68s   p(90)=5.07s   p(95)=5.89s    p(99)=7.66s    max=11.58s  
+      { expected_response:true }...: avg=2.54s   med=2.68s   p(90)=5.07s   p(95)=5.89s    p(99)=7.66s    max=11.58s  
+      { type:api }.................: avg=65.19ms med=75.93ms p(90)=117.4ms p(95)=120.95ms p(99)=124.88ms max=281.55ms
+    http_req_failed................: 0.00%  0 out of 1544
+      { type:api }.................: 0.00%  0 out of 458
+    http_reqs......................: 1544   5.859644/s
+
+    EXECUTION
+    iteration_duration.............: avg=20.89s  med=20.63s  p(90)=24.86s  p(95)=25.84s   p(99)=28.86s   max=32.09s  
+    iterations.....................: 529    2.007611/s
+    vus............................: 2      min=0         max=60
+    vus_max........................: 60     min=60        max=60
+
+    NETWORK
+    data_received..................: 4.8 MB 18 kB/s
+    data_sent......................: 921 kB 3.5 kB/s
+
+
+

@@ -21,6 +21,7 @@ name: meetingmate-obs
 services:
   mysql:
     image: mysql:8.0
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: meetingmate
       MYSQL_USER: meetingmate
@@ -65,6 +66,9 @@ services:
       # Expose actuator inside the compose network only (port 8081 is not published
       # except on localhost for debugging).
       MANAGEMENT_ADDRESS: 0.0.0.0
+      # Lets an experiment re-enable OSIV without a code change, e.g.
+      #   SPRING_JPA_OPEN_IN_VIEW=true docker compose ... up -d --force-recreate backend
+      SPRING_JPA_OPEN_IN_VIEW: ${SPRING_JPA_OPEN_IN_VIEW:-false}
       JAVA_TOOL_OPTIONS: ${BACKEND_JAVA_OPTS:--XX:MaxRAMPercentage=60}
     ports:
       - "127.0.0.1:8080:8080"

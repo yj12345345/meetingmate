@@ -1,128 +1,134 @@
-# 부하 테스트: DB 커넥션 풀 고갈(OSIV) · N+1 · 인덱스 누락
+# 부하 테스트: 외부 AI API 대기 중 DB 커넥션 점유(OSIV)로 인한 풀 고갈
 
 - 날짜: 2026-11-09
 - 환경: 로컬 docker-compose (운영과 같은 `prod` 프로필, 백엔드 CPU 2 / 메모리 768MB 제한, MySQL 8.0 / 512MB)
 - 도구: k6 1.3.0, Prometheus + Grafana, MySQL slow query log / `performance_schema` / `EXPLAIN ANALYZE`
-- 관련 커밋: OSIV 비활성화, `PlaceService.getPlaces` N+1 제거, 엔티티 인덱스 추가
+- 서비스 흐름: 개인 사용자가 조건(지역·모임 유형·분위기·일정)을 입력한다 → AI가 장소를 추천한다 → 카카오맵으로 확인한다 → 마음에 드는 장소를 골라 AI 코스 추천을 받는다
 
 ## 1. 문제
 
-사용자 60명이 "내 정보 → 내 모임 → 모임 상세 → 장소 후보 → AI 추천" 흐름을 반복하자,
-**DB 조회 한 번뿐인 `GET /api/user/me`의 p95가 5.5초**까지 늘어났다. 1명일 때는 같은 API가 20ms 안팎이었다.
-CPU 사용률은 58%로 여유가 있었고, 에러는 0건이었다. 서버가 실패하지는 않고 "그냥 느린" 상태였다.
+사용자 60명이 실제 화면 흐름(로그인 → 조건 입력 추천 → 결과 확인 → 선택 장소 코스 추천 → 마이페이지)을 반복하자,
+**AI와 관계없는 API까지 느려졌다.**
+
+- `GET /api/user/me`는 PK 조회 한 번인데 p95가 **1.4초**였다(평소 11ms).
+- `POST /api/auth/login`의 p95는 **991ms**였다(평소 약 105ms. 대부분 bcrypt 계산 시간).
+
+CPU에는 여유가 있었고, 에러는 0건이었다.
 
 ## 2. 가설
 
-1. **OSIV(Open Session In View) 때문에 커넥션이 오래 점유된다.**
-   Spring Boot 기본값은 `spring.jpa.open-in-view=true`다.
-   이 상태에서는 요청 중 처음 쿼리를 실행할 때 얻은 DB 커넥션을 **응답을 다 보낼 때까지** 반납하지 않는다.
-   `/api/recommend`는 DB 조회(`findTop5ByName...`)를 먼저 하고 그다음 OpenAI를 호출한다(약 3초).
-   그래서 추천 요청 하나가 커넥션을 약 3초씩 쥐고 있게 된다.
-   HikariCP 기본 풀 크기는 10개뿐이라, 추천 요청 10개만 동시에 들어와도 다른 모든 API가 커넥션을 기다린다.
-2. 장소 목록 API에 **N+1 쿼리**가 있다. 장소마다 `COUNT(*)`를 한 번씩 실행한다.
-3. 데이터가 늘면 `group_id`, `user_id`, `email`에 인덱스가 없어서 **풀 테이블 스캔**이 생긴다.
+Spring Boot 기본값인 **OSIV(`spring.jpa.open-in-view=true`)** 가 원인이라고 봤다.
+
+OSIV가 켜져 있으면, 요청 중 처음 쿼리를 실행할 때 얻은 DB 커넥션을 **응답을 다 보낼 때까지** 반납하지 않는다.
+`GET /api/recommend`는 DB 조회를 먼저 하고 OpenAI 응답을 기다린다(중앙값 약 3.4초).
+그래서 추천 요청 하나가 커넥션 하나를 3초 넘게 쥐고 있게 된다.
+HikariCP 기본 풀은 10개뿐이라, AI 요청이 동시에 10개 이상 몰리면 로그인이나 마이페이지 같은 다른 API가 커넥션을 기다리게 된다.
 
 ## 3. 실험 방법
 
-- **시나리오:** [`load-test/user-flow.js`](../../load-test/user-flow.js). 사용자 0 → 20 → 60명으로 늘린 뒤 2분 유지하고 줄이는 4분짜리 흐름이다. 각 단계 사이에 실제 사람처럼 생각하는 시간(think time)을 넣었다.
-- **로그인:** OAuth는 자동화할 수 없어서, 앱에 이미 있는 로컬 계정 API(`/api/auth/signup`, `/login`)로 실제 JWT를 받았다. 테스트 전용 인증 코드는 운영 코드에 추가하지 않았다.
-- **OpenAI 대체:** 비용 원칙에 따라 실제 API 대신 WireMock mock을 썼다. 응답 형식은 실제와 같고, 지연은 lognormal 분포(중앙값 3초, σ=0.4)로 실제 LLM API의 긴 꼬리 지연을 흉내 냈다.
-- **수집:** 실행 구간의 서버 지표는 [`load-test/collect.py`](../../load-test/collect.py)로 Prometheus에서 뽑았다. 요청 하나당 SQL 수는 [`count-queries.sh`](../../load-test/count-queries.sh)로 `performance_schema`에서 셌다.
-- **변수 통제:** 한 번에 하나만 바꾸고 다시 쟀다(baseline → OSIV off → 데이터 확장 → 인덱스).
+- **시나리오:** [`load-test/recommend-flow.js`](../../load-test/recommend-flow.js). 프론트엔드 라우트(`/select` → `/result` → `/selected-route`, MyPage)를 그대로 따랐다.
+  - 세션의 30%만 다시 로그인한다. 나머지는 토큰이 유효한 재방문자로 가정했다.
+  - 결과 화면에서는 프론트와 똑같이 **카테고리마다 한 곳씩** 골라 코스 추천을 요청한다.
+  - 단계 사이에는 생각하는 시간(2~7초)을 넣었다.
+  - 사용자 수는 0 → 20 → 60명으로 늘려 2분 유지하고 줄인다. 한 번에 약 4분 반 걸린다.
+- **로그인:** OAuth는 자동화할 수 없어서, 앱에 이미 있는 로컬 계정 API로 실제 JWT를 받았다. 테스트 전용 인증 코드는 운영에 추가하지 않았다.
+- **OpenAI 대체:** 비용 원칙에 따라 WireMock mock을 썼다. 응답 형식은 실제와 같고, 지연은 lognormal 분포(중앙값 3초, σ=0.4)로 실제 LLM API의 긴 꼬리 지연을 흉내 냈다.
+- **변수 통제:**
+  - 코드는 그대로 두고, 환경변수 `SPRING_JPA_OPEN_IN_VIEW`만 `true`/`false`로 바꿔 같은 시나리오를 두 번 돌렸다.
+  - DB는 운영과 비슷하게 빈 상태에서 시작했다.
+  - 실행할 때마다 컨테이너의 환경변수를 확인해서, OSIV가 실제로 반영됐는지 검증했다.
+- **수집:** k6 요약과, 실행 구간의 Prometheus 서버 지표([`collect.py`](../../load-test/collect.py))를 함께 남겼다.
 
-## 4. 결과와 개선
+## 4. 결과
 
-### 4-1. OSIV off
-
-| 지표 (60 VU, 4분) | Before (baseline) | After (OSIV off) |
+| 지표 (60 VU, 실제 흐름) | OSIV on (개선 전) | OSIV off (개선 후) |
 |---|---|---|
-| 일반 API p95 (k6, 클라이언트 측) | **4.06 s** | **25 ms** |
-| `GET /api/user/me` 서버 p95 | 5,463 ms | 17 ms |
-| `GET /api/recommend` p95 | 9.53 s | 6.27 s (mock 자체 p95 ≈ 5.8 s) |
-| Hikari active (max) / pending (max) | 10 / **39** | 1 / **0** |
-| 커넥션 평균 대기 시간 | 591 ms | 0 ms |
-| 커넥션 평균 점유 시간 | 293 ms | **1 ms** |
-| 4분간 완료한 사용자 흐름 | 620 | **1,002 (+62%)** |
+| AI 외 API p95 (k6, 클라이언트 측) | **1.11 s** | **121 ms** |
+| `GET /api/user/me` 서버 p95 | 1,432 ms | **25 ms** |
+| `POST /api/auth/login` 서버 p95 | 991 ms | **132 ms** |
+| Hikari active (max) / pending (max) | 10 (풀 전체) / **12** | 1 / **0** |
+| 커넥션 평균 대기 시간 | 179 ms | 0.1 ms |
+| 커넥션 평균 점유 시간 | **821 ms** | **2.2 ms** |
+| `GET /api/recommend` 서버 p50 / p95 | 3,404 / 6,670 ms | 3,370 / 6,299 ms |
+| `POST /api/recommend/selected-routes` p50 / p95 | 3,375 / 6,514 ms | 3,343 / 6,724 ms |
+| 완료한 사용자 흐름 (4분 반) | 528 | 529 |
 | 에러율 | 0% | 0% |
 
-**개선 내용:** `application.yaml`에 `spring.jpa.open-in-view: false`를 넣었다.
+### 해석 (과장하지 않기)
+
+- OSIV를 끈다고 **AI 추천 자체가 빨라지지는 않는다.** AI 요청은 OpenAI(mock) 응답 시간에 묶여 있어서 전후가 같다. 처리량도 같다. 사용자의 생각 시간과 AI 대기가 전체 시간의 대부분을 차지하기 때문이다.
+- 개선된 것은 **AI 대기가 다른 API로 번지는 현상**이다. 커넥션 점유 시간이 821ms에서 2.2ms로 줄면서, 로그인과 마이페이지가 AI 트래픽과 상관없이 평소 속도를 되찾았다.
+- 지금은 60명에 pending 12 정도지만, AI 동시 요청이 많아질수록 이 차이는 더 커진다. 풀(10개)보다 동시 AI 요청이 많아지는 순간부터, AI와 상관없는 모든 요청이 줄을 서기 때문이다.
+
+## 5. 개선
+
+`application.yaml`에 `spring.jpa.open-in-view: false`를 넣었다.
+
 끄기 전에 지연 로딩이 깨질 곳이 있는지 확인했다.
-LAZY 연관관계(`Availability`, `AvailabilitySlot`)는 모두 서비스의 `@Transactional` 안에서만 접근하고, 컨트롤러는 DTO와 ID만 다룬다.
-그래서 `LazyInitializationException`이 날 곳이 없다는 것을 확인했고, 기존 테스트도 모두 통과했다.
+LAZY 연관관계는 모두 서비스의 `@Transactional` 안에서만 접근하고, 컨트롤러는 DTO와 ID만 다룬다.
+그래서 `LazyInitializationException`이 생길 곳이 없다는 것을 확인했고, 기존 테스트도 모두 통과했다.
 
-> **풀 크기를 늘리지 않은 이유:** 풀을 30으로 늘리면 일단 증상은 줄어든다.
-> 하지만 "외부 API를 기다리는 동안 커넥션을 쥐고 있는" 구조는 그대로라서, 동시 사용자가 늘면 같은 문제가 다시 생긴다.
-> 게다가 운영 MySQL은 같은 소형 EC2에서 돌고 있어서, 커넥션 하나하나가 메모리를 쓴다.
-> 원인(점유 시간)을 없애는 것이 맞다고 판단했다.
+**커넥션 풀 크기를 늘리지 않은 이유:**
+풀을 늘리면 증상은 줄지만 "외부 API를 기다리면서 커넥션을 쥐고 있는" 구조는 그대로 남는다. 동시 사용자가 늘면 같은 문제가 다시 생긴다.
+게다가 운영 MySQL은 같은 소형 EC2에서 돌고 있어서, 커넥션 하나하나가 메모리를 쓴다.
+원인인 점유 시간을 없애는 것이 맞다고 판단했다.
 
-### 4-2. N+1 쿼리 (`GET /api/groups/{id}/places`)
-
-| | Before | After |
-|---|---|---|
-| 장소 20개인 모임 조회 시 SQL 수 | **22** (사용자 1 + 장소 1 + 장소별 COUNT 20) | **3** (장소 수와 무관) |
-
-**개선 내용:** `PlaceVoteRepository.countGroupedByPlaceIds`(`... WHERE place_id IN (...) GROUP BY place_id`)로 투표 수를 한 번에 가져온다.
-투표가 없는 장소는 0으로 채운다.
-H2에서 실제 JPQL을 실행하는 통합 테스트(`PlaceServiceVoteCountIntegrationTest`)로, 고치기 전과 같은 결과가 나오는 것을 확인했다.
-
-### 4-3. 인덱스 누락 (데이터 확장 시나리오)
-
-실제 운영 데이터는 아직 적다. 그래서 **서비스가 성장했다고 가정한 합성 데이터**를 넣었다
-([`seed-scale.sql`](../../load-test/seed-scale.sql): 사용자 20만, 모임 5만, 장소 후보 50만, 멤버십 20만).
-
-| 쿼리 (`EXPLAIN ANALYZE`) | Before | After |
-|---|---|---|
-| `place_candidate WHERE group_id=?` | Table scan 50만 행, **103 ms** | Index lookup 20행, **0.5 ms** |
-| `group_members WHERE user_id=?` | Table scan 20만 행, 27 ms | Index lookup, 0.7 ms |
-| `user WHERE email=? AND provider=?` (로그인) | Table scan 20만 행, 47 ms | Index lookup, 1.0 ms |
-
-| 부하 테스트 (데이터 확장 상태) | 인덱스 없음 | 인덱스 추가 |
-|---|---|---|
-| `GET /places` 서버 p50 / p95 | 144 / 410 ms | **7 / 32 ms** |
-| `GET /api/groups/me` 서버 p50 / p95 | 49 / 135 ms | 8 / 66 ms |
-
-**개선 내용:** 엔티티에 `@Table(indexes = ...)`를 선언했다.
-`idx_place_candidate_group_id`, `idx_group_members_user_id`, `idx_user_email_provider`, `idx_user_provider_id_provider` 4개다.
-운영의 `ddl-auto: update`가 다음 배포 때 이 인덱스를 자동으로 만든다(로컬에서 확인함).
-
-### 4-4. 남은 병목 (다음 작업)
-
-인덱스를 넣은 뒤에도 모든 API의 **p99가 약 900ms**였고, Hikari pending이 16까지 올랐다.
-slow query log에 잡힌 1,914건 중 1,908건이 추천 API의 키워드 검색이었다.
-
-```sql
-select ... from place_candidate where upper(name) like upper('%홍대%') order by id desc limit 5
--- EXPLAIN ANALYZE: 50만 행 전체 스캔, 245 ms (부하 중 중앙값 304 ms, 최대 2.4 s)
-```
-
-앞에 `%`가 붙는 LIKE는 B-tree 인덱스를 쓸 수 없다. 남은 선택지는 MySQL FULLTEXT(ngram) 인덱스, 검색 범위 축소, 캐시다.
-덤으로, 이 쿼리는 **다른 모임의 장소 후보까지** 검색 대상에 넣는다. 데이터 노출 측면에서도 검토가 필요하다.
-
-## 5. 그래프 (Grafana, 로컬 스택 실행 중일 때 열림)
+## 6. 그래프 (Grafana, 로컬 스택 실행 중일 때 열림)
 
 | 실행 | 링크 |
 |---|---|
-| baseline | http://localhost:3000/d/meetingmate-backend?from=1794211203000&to=1794211524000 |
-| OSIV off | http://localhost:3000/d/meetingmate-backend?from=1794211861000&to=1794212180000 |
-| 데이터 확장, 인덱스 없음 | http://localhost:3000/d/meetingmate-backend?from=1794212238000&to=1794212560000 |
-| 데이터 확장, 인덱스 추가 | http://localhost:3000/d/meetingmate-backend?from=1794212543000&to=1794212870000 |
+| OSIV on | http://localhost:3000/d/meetingmate-backend?from=1794216441000&to=1794216766000 |
+| OSIV off | http://localhost:3000/d/meetingmate-backend?from=1794216723000&to=1794217047000 |
 
-캡처 추천 패널: "Latency p50/p95/p99", "Connections (HikariCP)". baseline과 OSIV off를 나란히 놓으면 pending 그래프 차이가 가장 잘 보인다.
-원본 수치는 `load-test/results/`에 있다(k6 요약 JSON/TXT, 서버 지표 `.server.md`).
+캡처 추천 패널: "Connections (HikariCP)"(pending과 active 차이), "p95 latency by endpoint"(user/me와 login).
+원본 수치는 `load-test/results/*recommend-flow-osiv-*`에 있다.
 
-## 6. 배운 점
+## 7. 다음 과제 (2단계로 넘김)
 
-- **"느린 API"와 "느린 원인"은 다른 곳에 있을 수 있다.** `user/me` 자체에는 문제가 없었다. 원인은 같은 풀을 쓰는 추천 API였다. 엔드포인트별 지연만 봐서는 찾을 수 없었고, 커넥션 풀 지표(pending, 점유 시간)를 함께 봐야 보였다.
-- **OSIV는 외부 API 호출과 함께 쓰면 위험하다.** 트랜잭션 범위뿐 아니라 "커넥션 점유 범위"를 설계해야 한다.
-- **측정 대상이 실제로 배포됐는지부터 확인해야 한다.** 두 번째 측정 때 Docker 빌드가 네트워크 타임아웃으로 실패했는데, 이전 컨테이너가 그대로 떠 있어서 결과가 baseline과 똑같았다. 시작 로그의 OSIV 경고를 보고 알아챘다. 이후 로컬 스택은 호스트에서 빌드한 jar를 마운트하는 방식으로 바꿨고(`load-test/redeploy.sh`), 재배포 후 반영 여부를 확인하는 단계를 넣었다. 덕분에 baseline이 재현된다는 것도 확인했다(두 번 모두 pending 39~42, `user/me` p95 5.5~6.0초).
-- **인덱스 효과는 데이터 규모가 있어야 보인다.** 행이 몇백 개일 때는 차이가 없었다. 그래서 가정한 데이터 규모를 결과와 함께 적어야 한다.
+이 서비스의 실제 병목은 **OpenAI 호출 자체**다.
 
-## 부록: 재현 방법
+- 중앙값 3.4초, p95 6~7초가 걸린다.
+- `WebClient.block()`에 **타임아웃이 없다.** OpenAI가 멈추면 Tomcat 스레드도 무한정 기다린다.
+
+타임아웃, 서킷 브레이커, 폴백(이미 있는 FALLBACK 코스)을 장애 주입으로 검증할 예정이다.
+
+## 8. 배운 점
+
+- **느린 API와 느린 원인은 다른 곳에 있을 수 있다.** `user/me`와 로그인 코드에는 문제가 없었다. 원인은 같은 커넥션 풀을 쓰는 AI 추천 API였다. 엔드포인트별 지연만 봐서는 찾을 수 없었고, 커넥션 풀 지표(pending, 점유 시간)를 함께 봐야 보였다.
+- **트랜잭션 범위와 "커넥션 점유 범위"는 다르다.** 외부 API를 부르는 서비스라면 OSIV를 끄거나, 외부 호출을 커넥션 밖으로 빼야 한다.
+- **부하 시나리오는 실제 서비스 흐름에서 시작해야 한다.** 처음에는 백엔드 API 목록을 보고 시나리오를 짰다. 그래서 프론트에서 쓰지 않는 모임 기능을 넣었고, 그 결과 병목을 과장한 수치(아래 부록 A)가 나왔다. 프론트엔드 라우트를 확인한 뒤 시나리오를 다시 만들어 측정했다.
+- **측정 대상이 실제로 배포됐는지부터 확인해야 한다.** Docker 빌드가 네트워크 타임아웃으로 실패했는데 이전 컨테이너가 그대로 떠 있어서, 옛 버전을 측정한 적이 있다. 이후 로컬 스택은 호스트에서 빌드한 jar를 마운트하도록 바꿨다(`load-test/redeploy.sh`). 그리고 실행할 때마다 설정이 반영됐는지(환경변수, 커넥션 점유 시간) 확인했다.
+- **요청 ID가 디버깅 시간을 줄였다.** 새 시나리오의 첫 실행에서 코스 추천이 전부 400을 받았다. k6가 보낸 `X-Request-Id`로 서버 로그를 바로 찾았고, 같은 카테고리 장소를 고른 스크립트 버그라는 것을 확인했다.
+- **작은 인스턴스에서는 대량 DELETE 하나로도 MySQL이 죽는다.** 테스트 데이터 50만 행 이상을 트랜잭션 하나로 지우다가, 메모리 512MB로 제한한 MySQL 컨테이너가 **OOM으로 종료**됐다. 운영 EC2도 소형 인스턴스에서 MySQL을 함께 돌리므로, 대량 정리 작업은 배치로 나눠야 한다(예: `DELETE ... LIMIT 5000` 반복).
+
+---
+
+## 부록 A. 첫 번째 시나리오(모임 기능 포함)에서의 측정 — 참고용
+
+처음 시나리오([`user-flow.js`](../../load-test/user-flow.js), 지금은 대체됨)는 프론트에서 쓰지 않는 모임/장소 API를 탐색 흐름에 넣었다.
+그래서 AI 외 요청의 비중이 실제보다 컸고, OSIV 효과도 과장돼 보였다(AI 외 API p95 4.06s → 25ms).
+**포트폴리오 수치로는 본문(4장)을 쓴다.**
+
+## 부록 B. 부가 발견 (현재 미사용 기능 / 데이터 확장 가정)
+
+- **N+1:** `GET /api/groups/{id}/places`가 장소마다 투표 수 `COUNT`를 따로 실행했다. 장소 20개면 SQL이 22개였다. `IN + GROUP BY` 한 번으로 바꿔 3개로 줄였다. 다만 **프론트에서 쓰지 않는 기능**이라 실사용 효과는 없다.
+- **인덱스:** 합성 데이터(사용자 20만 등)에서 `EXPLAIN ANALYZE`로 풀 스캔을 확인하고 인덱스 4개를 추가했다. 이 중 **로그인 경로의 `user(email, provider)`, `user(provider_id, provider)`는 실제 서비스에 해당한다**(20만 행 기준 47ms → 1ms). 모임/장소 인덱스는 미사용 기능용이다.
+- **철회한 가설:** 추천 API의 키워드 검색(`upper(name) LIKE '%키워드%'`)이 50만 행 기준 245ms로 병목처럼 보였다. 하지만 검색 대상 `place_candidate`는 미사용 모임 기능으로만 채워지는 테이블이다. 운영에서는 거의 비어 있으므로, 합성 데이터가 만든 인위적인 병목이라 판단해 철회했다.
+- **보안:** 미사용 모임 API에 IDOR가 있다(장소 목록 조회 시 멤버인지 확인하지 않음). 그런데도 운영에 노출돼 있다. 2단계에서 비활성화나 삭제를 검토한다.
+
+## 부록 C. 재현 방법
 
 ```bash
 cp .env.observability.example .env.observability   # 값 채우기
 (cd backend && ./gradlew bootJar -x test)
 docker compose -f docker-compose.observability.yml --env-file .env.observability up -d
-./load-test/run.sh user-flow baseline
+
+# 개선 전 (OSIV on)
+SPRING_JPA_OPEN_IN_VIEW=true docker compose -f docker-compose.observability.yml --env-file .env.observability up -d --force-recreate backend
+./load-test/run.sh recommend-flow osiv-on
+# 개선 후 (OSIV off, 기본값)
+docker compose -f docker-compose.observability.yml --env-file .env.observability up -d --force-recreate backend
+./load-test/run.sh recommend-flow osiv-off
+
 python3 load-test/collect.py load-test/results/<실행>.meta
 ```

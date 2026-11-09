@@ -1,3 +1,7 @@
+// SUPERSEDED by recommend-flow.js (2026-11-09). This flow browses the group/place
+// features, which exist in the backend but are not used by any frontend page.
+// Kept only so the first ops-log measurements stay reproducible.
+//
 // MeetingMate realistic user-flow load test (k6).
 //
 // Flow per iteration (one "visit"):
