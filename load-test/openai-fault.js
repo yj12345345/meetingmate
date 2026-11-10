@@ -10,7 +10,7 @@
 //   180s - 300s  recovery     (fault removed)
 //
 //   FAULT=hang  ./load-test/run.sh openai-fault baseline-hang
-//   FAULT=error | reset | slow | unavailable
+//   FAULT=error | reset | slow | unavailable | none (host injects the fault, see db-fault.sh)
 //
 // The AI request timeout on the client is 60s = Nginx's default proxy_read_timeout,
 // i.e. what a real browser behind our Nginx would experience.
@@ -132,6 +132,9 @@ export function probe(data) {
 }
 
 export function chaos(data) {
+  // FAULT=none: no OpenAI fault; used when another fault (e.g. MySQL stop via
+  // load-test/db-fault.sh) is injected from the host on the same timeline.
+  if (FAULT === 'none') return;
   const spec = FAULTS[FAULT];
   if (!spec) fail(`unknown FAULT=${FAULT}`);
   sleep(Math.max(0, 60 - (Date.now() - data.start) / 1000));

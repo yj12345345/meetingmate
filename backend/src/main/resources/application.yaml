@@ -22,6 +22,11 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      # Default is 30s: when MySQL went down every request waited 30s for a connection
+      # and Tomcat threads piled up. Normal acquire wait is ~0.1ms (load test), so 3s
+      # is generous and turns an outage into fast 503s instead of hanging requests.
+      connection-timeout: ${DB_CONNECTION_TIMEOUT_MS:3000}
 
   jpa:
     # OSIV off: with it on, a request keeps its DB connection until the response is
@@ -84,6 +89,12 @@ management:
       show-details: never
       probes:
         enabled: true
+      group:
+        # readiness = "can serve traffic": include the DB so a load balancer / monitor
+        # can stop routing here during a DB outage. liveness deliberately excludes the
+        # DB: restarting the app cannot fix MySQL and would only add restart loops.
+        readiness:
+          include: readinessState,db
   metrics:
     tags:
       application: meetingmate

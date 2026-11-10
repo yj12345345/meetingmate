@@ -1,0 +1,350 @@
+{
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "login 2xx": {
+                    "fails": 89,
+                    "name": "login 2xx",
+                    "path": "::login 2xx",
+                    "id": "29e7f4a6e040b5d4b002901cb48f1a85",
+                    "passes": 197
+                },
+                "recommend 2xx": {
+                    "name": "recommend 2xx",
+                    "path": "::recommend 2xx",
+                    "id": "7bee208499da9eee8edd8e60401f3d1f",
+                    "passes": 813,
+                    "fails": 320
+                },
+                "user_me 2xx": {
+                    "id": "6971fc12ad323441043c5d4ee18d35a6",
+                    "passes": 209,
+                    "fails": 58,
+                    "name": "user_me 2xx",
+                    "path": "::user_me 2xx"
+                }
+            }
+    },
+    "metrics": {
+        "http_req_duration{name:recommend,phase:recovery}": {
+            "med": 2983.590148,
+            "p(95)": 6476.293236499997,
+            "p(99)": 8818.763623919998,
+            "max": 9854.530714,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "data_sent": {
+            "count": 647325,
+            "rate": 2089.7737735015653
+        },
+        "http_req_connecting": {
+            "med": 0,
+            "p(95)": 1.1729582999999992,
+            "p(99)": 2.4315597799999997,
+            "max": 38.860862
+        },
+        "vus": {
+            "value": 3,
+            "min": 0,
+            "max": 173
+        },
+        "iteration_duration": {
+            "med": 3587.985116,
+            "p(95)": 30022.6530029,
+            "p(99)": 30050.60208516,
+            "max": 34123.310994
+        },
+        "http_req_failed{name:recommend,phase:fault}": {
+            "passes": 320,
+            "fails": 94,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0.7729468599033816
+        },
+        "http_req_duration{name:recommend,phase:fault}": {
+            "med": 30015.351749499998,
+            "p(95)": 30043.643174549998,
+            "p(99)": 31937.441445200002,
+            "max": 34121.605266,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "recommend_source": {
+            "count": 1133,
+            "rate": 3.6576892370559975
+        },
+        "http_req_duration{name:recommend,phase:normal}": {
+            "max": 9011.382752,
+            "med": 3102.7038435,
+            "p(95)": 5744.827283449999,
+            "p(99)": 7919.8843664199985,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "http_req_failed{name:recommend,phase:recovery}": {
+            "passes": 0,
+            "fails": 479,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0
+        },
+        "http_req_duration{name:user_me,phase:fault}": {
+            "max": 30003.098512,
+            "med": 30000.044553,
+            "p(95)": 30002.2154919,
+            "p(99)": 30002.823154359998,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "http_req_blocked": {
+            "med": 0.023189500000000002,
+            "p(95)": 1.4847975999999998,
+            "p(99)": 2.6227261599999996,
+            "max": 38.97558
+        },
+        "http_req_sending": {
+            "max": 2.005379,
+            "med": 0.06717000000000001,
+            "p(95)": 0.22242684999999998,
+            "p(99)": 0.6359767599999993
+        },
+        "http_req_failed": {
+            "fails": 1299,
+            "passes": 469,
+            "value": 0.2652714932126697
+        },
+        "http_req_failed{name:recommend,phase:normal}": {
+            "passes": 0,
+            "fails": 240,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0
+        },
+        "http_req_failed{name:login,phase:recovery}": {
+            "fails": 117,
+            "passes": 0,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0
+        },
+        "http_req_duration{name:login,phase:fault}": {
+            "med": 29999.906272,
+            "p(95)": 30002.1969208,
+            "p(99)": 30002.94966452,
+            "max": 30003.764684,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "http_req_waiting": {
+            "med": 3382.9464355,
+            "p(95)": 30019.238748800002,
+            "p(99)": 30044.22611222,
+            "max": 34120.614934
+        },
+        "checks": {
+            "passes": 1219,
+            "fails": 467,
+            "value": 0.7230130486358244
+        },
+        "http_req_failed{name:user_me,phase:recovery}": {
+            "passes": 0,
+            "fails": 124,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0
+        },
+        "http_req_duration{name:user_me,phase:normal}": {
+            "p(95)": 27.309115249999998,
+            "p(99)": 32.565462239999995,
+            "max": 34.258033,
+            "med": 16.773475,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "http_req_receiving": {
+            "med": 0.3310345,
+            "p(95)": 1.564374449999999,
+            "p(99)": 3.96479531,
+            "max": 29.052286
+        },
+        "http_req_failed{name:login,phase:normal}": {
+            "passes": 0,
+            "fails": 60,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0
+        },
+        "http_req_tls_handshaking": {
+            "p(99)": 0,
+            "max": 0,
+            "med": 0,
+            "p(95)": 0
+        },
+        "http_req_duration{name:login,phase:recovery}": {
+            "p(99)": 5670.897183719999,
+            "max": 7165.412202,
+            "med": 114.385252,
+            "p(95)": 998.3532519999975,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "vus_max": {
+            "max": 177,
+            "value": 177,
+            "min": 61
+        },
+        "http_req_duration{name:user_me,phase:recovery}": {
+            "max": 6993.830196,
+            "med": 15.024479,
+            "p(95)": 2494.6550795499975,
+            "p(99)": 5909.651415679999,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "recommend_source{name:recommend,phase:recovery}": {
+            "count": 594,
+            "rate": 1.917623483505086,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "recommend_source{name:recommend,phase:normal}": {
+            "count": 227,
+            "rate": 0.7328291763563207,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_reqs": {
+            "count": 1768,
+            "rate": 5.707673937436014
+        },
+        "http_req_duration{expected_response:true}": {
+            "med": 2439.199773,
+            "p(95)": 19930.904479899997,
+            "p(99)": 29606.717667659996,
+            "max": 34121.605266
+        },
+        "recommend_source{name:recommend,phase:fault}": {
+            "count": 312,
+            "rate": 1.0072365771945906,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_duration": {
+            "max": 34121.605266,
+            "med": 3383.3635555,
+            "p(95)": 30020.021580149998,
+            "p(99)": 30046.15521244
+        },
+        "dropped_iterations": {
+            "count": 116,
+            "rate": 0.37448539408516834
+        },
+        "http_req_duration{name:login,phase:normal}": {
+            "med": 113.731623,
+            "p(95)": 123.7557356,
+            "p(99)": 130.57055645,
+            "max": 137.401249,
+            "thresholds": {
+                "max>=0": false
+            }
+        },
+        "http_req_failed{name:user_me,phase:normal}": {
+            "passes": 0,
+            "fails": 60,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0
+        },
+        "http_req_failed{name:user_me,phase:fault}": {
+            "passes": 58,
+            "fails": 25,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0.6987951807228916
+        },
+        "data_received": {
+            "count": 4893043,
+            "rate": 15796.320139057536
+        },
+        "iterations": {
+            "count": 1687,
+            "rate": 5.446179826048956
+        },
+        "http_req_failed{name:login,phase:fault}": {
+            "passes": 89,
+            "fails": 20,
+            "thresholds": {
+                "rate>=0": false
+            },
+            "value": 0.8165137614678899
+        }
+    },
+    "setup_data": {
+        "tokens": [
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMzYiLCJpYXQiOjE3OTQyODQ5MjAsImV4cCI6MTc5NDI4ODUyMH0.SLIgoTuR_lEMXnBw6OReVGfncrX1EWB5oaVN8GXIcUM",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMzciLCJpYXQiOjE3OTQyODQ5MjAsImV4cCI6MTc5NDI4ODUyMH0.yAihHbaxXHQBv_oyM-6eMFxvAmtk4d8Kul-t0Q5dk0k",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMzgiLCJpYXQiOjE3OTQyODQ5MjEsImV4cCI6MTc5NDI4ODUyMX0.DptaLBvTo0rE3mlizQgnmXXkETqS6Lmr7x8Cns85RhA",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMzkiLCJpYXQiOjE3OTQyODQ5MjEsImV4cCI6MTc5NDI4ODUyMX0.Lu8srug6Cyra3eG0W7NISgZ1RZfPX0FypuTjVldTT9s",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNDAiLCJpYXQiOjE3OTQyODQ5MjEsImV4cCI6MTc5NDI4ODUyMX0.Sh4z8-gastnfupfPNB2S5NPvTAX1HEtlT1omdMXEpcA",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNDEiLCJpYXQiOjE3OTQyODQ5MjEsImV4cCI6MTc5NDI4ODUyMX0.YA38Dq0-Bx1sgbz6XFN3R1vXOSJ3oWvzXI-08PC_Ru0",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNDIiLCJpYXQiOjE3OTQyODQ5MjEsImV4cCI6MTc5NDI4ODUyMX0.1DtSlCdzAIoZ0LgIReBGZvmpWBqsy9bwQ8SCbtRzwjs",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNDMiLCJpYXQiOjE3OTQyODQ5MjEsImV4cCI6MTc5NDI4ODUyMX0.dJ0CJvS2_J9ZmqojIKML9kcpwu5NSfeHlgTlyFbrQaI",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNDQiLCJpYXQiOjE3OTQyODQ5MjEsImV4cCI6MTc5NDI4ODUyMX0._lZ6R9R05pH-BRWW7J2IFcUCykcowmbe02bATHU4d0c",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNDUiLCJpYXQiOjE3OTQyODQ5MjIsImV4cCI6MTc5NDI4ODUyMn0.02rjWRHcuXOR9IRCF-_nFt4fy0oNeYvsQxogwWIy0tE",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNDYiLCJpYXQiOjE3OTQyODQ5MjIsImV4cCI6MTc5NDI4ODUyMn0.yUzpAsmPP6ymu3IkyPxVFRMFUp8l-2BD30r0hDj1FxI",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNDciLCJpYXQiOjE3OTQyODQ5MjIsImV4cCI6MTc5NDI4ODUyMn0.HYdFvCCxi7_-Z66XXg9pZRF_L2J9MXYcTfuo1DsFAG0",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNDgiLCJpYXQiOjE3OTQyODQ5MjIsImV4cCI6MTc5NDI4ODUyMn0.bk846i4yjJL1UEZEHc7qrR4NbwF-dems_x3hrXFJhjI",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNDkiLCJpYXQiOjE3OTQyODQ5MjIsImV4cCI6MTc5NDI4ODUyMn0.rquJdqGhMwCANwrmI0FG8GJTWMmGfTIjek7Yyx3JEbs",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNTAiLCJpYXQiOjE3OTQyODQ5MjIsImV4cCI6MTc5NDI4ODUyMn0.aMolBAbVuBeB__2ZrOt-Q7UCy8gXNagipVICnQnRDPY",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNTEiLCJpYXQiOjE3OTQyODQ5MjIsImV4cCI6MTc5NDI4ODUyMn0._d9uWhp4R81UN-AMRt8_ZlJ1bkAq-9QZMtBXvesUsrM",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNTIiLCJpYXQiOjE3OTQyODQ5MjMsImV4cCI6MTc5NDI4ODUyM30.SoVM8qzyMpgkrF9N1yflFXbH5AWJieEo6JBF9d-jJ80",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNTMiLCJpYXQiOjE3OTQyODQ5MjMsImV4cCI6MTc5NDI4ODUyM30.rJDwH1pwFEAp9rozdYrkVcVXTsEp_8ftOuBl1ApzdGI",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNTQiLCJpYXQiOjE3OTQyODQ5MjMsImV4cCI6MTc5NDI4ODUyM30.ZG0uEMS1GOjK917DVCt9lmWRkCKwrH6U1e2WeCBY5ew",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNTUiLCJpYXQiOjE3OTQyODQ5MjMsImV4cCI6MTc5NDI4ODUyM30.3a895-rBQRRlk8PgGieHIGyrDYzadjU5Sl5HWu9fYhI",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNTYiLCJpYXQiOjE3OTQyODQ5MjMsImV4cCI6MTc5NDI4ODUyM30.xrBJqRC8tkep-8ASn-mzJoXFyp4Uu_clbg2JyupAGKI",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNTciLCJpYXQiOjE3OTQyODQ5MjMsImV4cCI6MTc5NDI4ODUyM30.7-_Q2QYKYeUc-gKxKRjF4vBZ9B8rLNCwU1TLXCfu1vE",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNTgiLCJpYXQiOjE3OTQyODQ5MjMsImV4cCI6MTc5NDI4ODUyM30.Yfz7h0q8tn_sou5dlBTTuieWxIc2AkBBlyt2uabwNjk",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNTkiLCJpYXQiOjE3OTQyODQ5MjQsImV4cCI6MTc5NDI4ODUyNH0.hGBur_8rL6xceRgjhp6_UiNg5jmd_uFlcPQ9UyX6OBQ",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNjAiLCJpYXQiOjE3OTQyODQ5MjQsImV4cCI6MTc5NDI4ODUyNH0.LjnYSsg1GEZaghBb49BmdsKw0hv_d-71x42KLcvIcqo",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNjEiLCJpYXQiOjE3OTQyODQ5MjQsImV4cCI6MTc5NDI4ODUyNH0.Eket8sWhHpmkPOtkUIehiW8Fj78YLkBkBmZlBt9BDFE",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNjIiLCJpYXQiOjE3OTQyODQ5MjQsImV4cCI6MTc5NDI4ODUyNH0.fjyM57gbYSzIFwG32-SxWRgRDm-21fw3gZO5L3sqgCY",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNjMiLCJpYXQiOjE3OTQyODQ5MjQsImV4cCI6MTc5NDI4ODUyNH0.8rh6ZM0_lrI6hydWwG2XFTRYWkiPL3FHMynCvygBp5s",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNjQiLCJpYXQiOjE3OTQyODQ5MjQsImV4cCI6MTc5NDI4ODUyNH0.Pg6gjtKmKIJFkGlnRMCP9KfBn3cHs_ByB5J24kRpUMg",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNjUiLCJpYXQiOjE3OTQyODQ5MjQsImV4cCI6MTc5NDI4ODUyNH0.u1TypJK4I39r0TacD9d_L0G-ha2qw0dgNOrPg8mZ7yc",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNjYiLCJpYXQiOjE3OTQyODQ5MjUsImV4cCI6MTc5NDI4ODUyNX0.5ti-Ih21oWzEBeVE7lanEsfnW_vWcYjpVB2SgVgfniY",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNjciLCJpYXQiOjE3OTQyODQ5MjUsImV4cCI6MTc5NDI4ODUyNX0.-aIwIb48UApIMPcmw1dy9a-vxVTbDJUgkiPNBEViCQs",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNjgiLCJpYXQiOjE3OTQyODQ5MjUsImV4cCI6MTc5NDI4ODUyNX0.Y444Khe_KqmYlPsvQSX3yRMjtzAuYaRMxQNdlfpr2GQ",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNjkiLCJpYXQiOjE3OTQyODQ5MjUsImV4cCI6MTc5NDI4ODUyNX0.PRyjvTaTLtDrYHwEMrpQUovO3xDJv1FonI4sT9dTPWg",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNzAiLCJpYXQiOjE3OTQyODQ5MjUsImV4cCI6MTc5NDI4ODUyNX0.7BwRf2OwBSY6eROpx1HSI75O2rLgQ7cBUV8EjfTiMN0",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNzEiLCJpYXQiOjE3OTQyODQ5MjUsImV4cCI6MTc5NDI4ODUyNX0.mNVmQjlW3cukdJ6tnTdrjyhMwiuZBl-x4DgZwyB-H8I",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNzIiLCJpYXQiOjE3OTQyODQ5MjYsImV4cCI6MTc5NDI4ODUyNn0.7YzIsJqXV-OIcwOf3sgDMTFTq3gHRTgII_kFx-iG4-0",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNzMiLCJpYXQiOjE3OTQyODQ5MjYsImV4cCI6MTc5NDI4ODUyNn0.0t3trJUDJLQV5Ac_XBn6UH__tuJ8R6P8Swr0l-yms-I",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNzQiLCJpYXQiOjE3OTQyODQ5MjYsImV4cCI6MTc5NDI4ODUyNn0.3hAtAArrrVtszlSXMmEOiI_tLOgCZUSeOg5vyNcHT2o",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNzUiLCJpYXQiOjE3OTQyODQ5MjYsImV4cCI6MTc5NDI4ODUyNn0.5zGdIWG1A3VPjO4LQHBF6MQWaZoqCijTED6l6ZIPF8Y"
+        ],
+        "start": 1794284926433
+    }
+}

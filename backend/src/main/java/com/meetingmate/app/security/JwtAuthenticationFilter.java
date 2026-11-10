@@ -1,6 +1,7 @@
 package com.meetingmate.app.security;
 
 import com.meetingmate.app.domain.user.User;
+import com.meetingmate.app.exception.DatabaseUnavailable;
 import com.meetingmate.app.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -35,7 +36,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(token) && jwtProvider.validate(token)) {
             Long userId = jwtProvider.getUserId(token);
 
-            userRepository.findById(userId).ifPresent(user -> {
+            java.util.Optional<User> found;
+            try {
+                found = userRepository.findById(userId);
+            } catch (RuntimeException e) {
+                // Exceptions thrown in a filter never reach @RestControllerAdvice and
+                // would become a generic 500, so answer the DB outage here.
+                if (DatabaseUnavailable.matches(e)) {
+                    logger.warn("Database unavailable during authentication: " + e);
+                    DatabaseUnavailable.write(response);
+                    return;
+                }
+                throw e;
+            }
+
+            found.ifPresent(user -> {
                 UserPrincipal principal = new UserPrincipal(user);
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());

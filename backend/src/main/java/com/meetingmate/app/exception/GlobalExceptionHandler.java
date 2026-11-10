@@ -2,12 +2,14 @@ package com.meetingmate.app.exception;
 
 import com.meetingmate.app.common.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -92,6 +94,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalState(IllegalStateException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.fail("ILLEGAL_STATE", e.getMessage()));
+    }
+
+    // ---- Dependency outage: database unreachable -> 503, not a bug (500) ----
+
+    @ExceptionHandler({CannotCreateTransactionException.class, DataAccessResourceFailureException.class})
+    public ResponseEntity<String> handleDatabaseUnavailable(Exception e) {
+        // WARN without stack trace: during an outage every request hits this, and the
+        // cause is already visible in Hikari / health metrics.
+        log.warn("Database unavailable: {}", e.toString());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(DatabaseUnavailable.RETRY_AFTER_SECONDS))
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(DatabaseUnavailable.BODY);
     }
 
     // ---- Everything else is a real server error: log it with the request ID ----

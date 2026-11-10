@@ -1,0 +1,269 @@
+time="2026-11-10T04:28:46Z" level=info msg="[t0] 2026-11-10T04:28:46.433Z" source=console
+time="2026-11-10T04:30:19Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:19Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:20Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:20Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:21Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:21Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:22Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:22Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:23Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:23Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:24Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:25Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:26Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:27Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:28Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:29Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:30Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:31Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:32Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:33Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:34Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:35Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:36Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:37Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:38Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:39Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:40Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:41Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:42Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:43Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:44Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:45Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:46Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:47Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:48Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:49Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:50Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:50Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:51Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:51Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:52Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:52Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:53Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:53Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:54Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:54Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:55Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:56Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:56Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:57Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:58Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:30:58Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:30:59Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:00Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:00Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:01Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:02Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:02Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:03Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:04Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:04Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:05Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:06Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:06Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:07Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:08Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:08Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:09Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:10Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:10Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:11Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:12Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:12Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:13Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:14Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:14Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:15Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:16Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:16Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:17Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:18Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:18Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:19Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:20Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:20Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:21Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:21Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:22Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:22Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:23Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:23Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:24Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:24Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:25Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:25Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:26Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:26Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:27Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:27Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:28Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:29Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:29Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:30Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:30Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:31Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:31Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:32Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:33Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:33Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:34Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:34Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:35Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:35Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:36Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:37Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:37Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:38Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:38Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:39Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:39Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:40Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:41Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:41Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:42Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:42Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:43Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:43Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:44Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:45Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:45Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:46Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:46Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:47Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:47Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:48Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:49Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:49Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:50Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:50Z" level=warning msg="Request Failed" error="Post \"http://backend:8080/api/auth/login\": request timeout"
+time="2026-11-10T04:31:51Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:51Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:52Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:52Z" level=warning msg="Request Failed" error="Get \"http://backend:8080/api/user/me\": request timeout"
+time="2026-11-10T04:31:53Z" level=warning msg="Request Failed" error="request timeout"
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{name:login,phase:fault}
+    ✓ 'max>=0' max=30s
+
+    http_req_duration{name:login,phase:normal}
+    ✓ 'max>=0' max=137.4ms
+
+    http_req_duration{name:login,phase:recovery}
+    ✓ 'max>=0' max=7.16s
+
+    http_req_duration{name:recommend,phase:fault}
+    ✓ 'max>=0' max=34.12s
+
+    http_req_duration{name:recommend,phase:normal}
+    ✓ 'max>=0' max=9.01s
+
+    http_req_duration{name:recommend,phase:recovery}
+    ✓ 'max>=0' max=9.85s
+
+    http_req_duration{name:user_me,phase:fault}
+    ✓ 'max>=0' max=30s
+
+    http_req_duration{name:user_me,phase:normal}
+    ✓ 'max>=0' max=34.25ms
+
+    http_req_duration{name:user_me,phase:recovery}
+    ✓ 'max>=0' max=6.99s
+
+    http_req_failed{name:login,phase:fault}
+    ✓ 'rate>=0' rate=81.65%
+
+    http_req_failed{name:login,phase:normal}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:login,phase:recovery}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:recommend,phase:fault}
+    ✓ 'rate>=0' rate=77.29%
+
+    http_req_failed{name:recommend,phase:normal}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:recommend,phase:recovery}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:user_me,phase:fault}
+    ✓ 'rate>=0' rate=69.87%
+
+    http_req_failed{name:user_me,phase:normal}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:user_me,phase:recovery}
+    ✓ 'rate>=0' rate=0.00%
+
+    recommend_source{name:recommend,phase:fault}
+    ✓ 'count>=0' count=312
+
+    recommend_source{name:recommend,phase:normal}
+    ✓ 'count>=0' count=227
+
+    recommend_source{name:recommend,phase:recovery}
+    ✓ 'count>=0' count=594
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 1686   5.442952/s
+    checks_succeeded...: 72.30% 1219 out of 1686
+    checks_failed......: 27.69% 467 out of 1686
+
+    ✗ login 2xx
+      ↳  68% — ✓ 197 / ✗ 89
+    ✗ recommend 2xx
+      ↳  71% — ✓ 813 / ✗ 320
+    ✗ user_me 2xx
+      ↳  78% — ✓ 209 / ✗ 58
+
+    CUSTOM
+    recommend_source......................: 1133   3.657689/s
+      { name:recommend,phase:fault }......: 312    1.007237/s
+      { name:recommend,phase:normal }.....: 227    0.732829/s
+      { name:recommend,phase:recovery }...: 594    1.917623/s
+
+    HTTP
+    http_req_duration.....................: med=3.38s    p(95)=30.02s   p(99)=30.04s   max=34.12s 
+      { expected_response:true }..........: med=2.43s    p(95)=19.93s   p(99)=29.6s    max=34.12s 
+      { name:login,phase:fault }..........: med=29.99s   p(95)=30s      p(99)=30s      max=30s    
+      { name:login,phase:normal }.........: med=113.73ms p(95)=123.75ms p(99)=130.57ms max=137.4ms
+      { name:login,phase:recovery }.......: med=114.38ms p(95)=998.35ms p(99)=5.67s    max=7.16s  
+      { name:recommend,phase:fault }......: med=30.01s   p(95)=30.04s   p(99)=31.93s   max=34.12s 
+      { name:recommend,phase:normal }.....: med=3.1s     p(95)=5.74s    p(99)=7.91s    max=9.01s  
+      { name:recommend,phase:recovery }...: med=2.98s    p(95)=6.47s    p(99)=8.81s    max=9.85s  
+      { name:user_me,phase:fault }........: med=30s      p(95)=30s      p(99)=30s      max=30s    
+      { name:user_me,phase:normal }.......: med=16.77ms  p(95)=27.3ms   p(99)=32.56ms  max=34.25ms
+      { name:user_me,phase:recovery }.....: med=15.02ms  p(95)=2.49s    p(99)=5.9s     max=6.99s  
+    http_req_failed.......................: 26.52% 469 out of 1768
+      { name:login,phase:fault }..........: 81.65% 89 out of 109
+      { name:login,phase:normal }.........: 0.00%  0 out of 60
+      { name:login,phase:recovery }.......: 0.00%  0 out of 117
+      { name:recommend,phase:fault }......: 77.29% 320 out of 414
+      { name:recommend,phase:normal }.....: 0.00%  0 out of 240
+      { name:recommend,phase:recovery }...: 0.00%  0 out of 479
+      { name:user_me,phase:fault }........: 69.87% 58 out of 83
+      { name:user_me,phase:normal }.......: 0.00%  0 out of 60
+      { name:user_me,phase:recovery }.....: 0.00%  0 out of 124
+    http_reqs.............................: 1768   5.707674/s
+
+    EXECUTION
+    dropped_iterations....................: 116    0.374485/s
+    iteration_duration....................: med=3.58s    p(95)=30.02s   p(99)=30.05s   max=34.12s 
+    iterations............................: 1687   5.44618/s
+    vus...................................: 3      min=0           max=173
+    vus_max...............................: 177    min=61          max=177
+
+    NETWORK
+    data_received.........................: 4.9 MB 16 kB/s
+    data_sent.............................: 647 kB 2.1 kB/s
+
+
+

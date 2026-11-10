@@ -1,0 +1,5 @@
+k6 start: 2026-11-10T04:28:40Z  (use this time range in Grafana)
+[db-fault] 2026-11-10T04:29:47Z docker stop meetingmate-obs-mysql-1
+[db-fault] 2026-11-10T04:31:49Z docker start meetingmate-obs-mysql-1
+[db-fault] 2026-11-10T04:31:51Z mysql accepting connections
+k6 end:   2026-11-10T04:33:50Z
