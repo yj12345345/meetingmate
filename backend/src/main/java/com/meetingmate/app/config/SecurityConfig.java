@@ -1,6 +1,5 @@
 package com.meetingmate.app.config;
 
-import com.meetingmate.app.repository.UserRepository;
 import com.meetingmate.app.security.ApiAuthenticationEntryPoint;
 import com.meetingmate.app.security.CustomOAuth2UserService;
 import com.meetingmate.app.security.JwtAuthenticationFilter;
@@ -29,12 +28,11 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final JwtProvider jwtProvider;
-    private final UserRepository userRepository;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtProvider, userRepository);
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtProvider);
 
         http
                 .csrf(csrf -> csrf.disable())

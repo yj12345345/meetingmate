@@ -1,5 +1,6 @@
 package com.meetingmate.app.service;
 
+import com.meetingmate.app.exception.AuthenticatedUserNotFoundException;
 import com.meetingmate.app.domain.availability.Availability;
 import com.meetingmate.app.domain.availability.AvailabilityRepository;
 import com.meetingmate.app.domain.availability.AvailabilitySlotRepository;
@@ -98,6 +99,6 @@ public class UserService {
 
     private User getUserOrThrow(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new AuthenticatedUserNotFoundException(userId));
     }
 }

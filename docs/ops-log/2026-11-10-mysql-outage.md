@@ -1,4 +1,14 @@
-# 장애 주입: MySQL 중단 — 30초씩 매달리던 요청을 3초 안의 503으로
+# 장애 주입: MySQL 중단 — 30초 매달림을 3초 안의 503으로, 핵심 기능은 DB 장애와 분리
+
+## 요약 (3번 측정, MySQL 2분 중단)
+
+| 지표 (MySQL 중단 구간) | ① 개선 전 | ② fail-fast + 503 | ③ + stateless JWT 인증 |
+|---|---|---|---|
+| **AI 추천 실패율** | 77% | 99% | **0%** |
+| 로그인 / 마이페이지 실패율 | 82% / 70% | 98% / 100% | 98% / 100% (DB가 꼭 필요하므로 예상대로) |
+| 실패 응답 | 500, 약 30초 | 503 + Retry-After, 약 3초 | 503 + Retry-After, 약 3초 |
+| Tomcat 바쁜 스레드 (max) | 170 | 18 | 22 |
+| DB 복구 직후 로그인 최대 | 7.2 s | 3.0 s | 3.0 s |
 
 - 날짜: 2026-11-10
 - 환경: 로컬 docker-compose (`prod` 프로필, MySQL 8.0 / 512MB)
@@ -67,7 +77,7 @@
 
 **테스트:** `DatabaseUnavailableIntegrationTest`로 JWT 필터 경로와 컨트롤러 경로 모두 503 + Retry-After를 고정했다.
 
-## 4. 남은 결정: 인증의 DB 의존 제거 (stateless JWT 인증)
+## 4. 인증의 DB 의존 제거 (stateless JWT 인증) — 적용함
 
 - **현재:** JWT 필터가 요청마다 사용자를 DB에서 조회한다. 컨트롤러가 인증 정보에서 쓰는 값은 `principal.getId()`뿐이다.
 - **대안:** 토큰의 서명과 만료만 검증하고, `userId`로 인증 객체를 만든다. 그러면 MySQL 장애 중에도 **AI 추천과 코스 추천이 계속 동작**한다. 핵심 기능이 DB 장애와 분리된다.
@@ -75,12 +85,32 @@
   - **완화책:** access token을 짧게 가져가고(2-4에서 15분 예정), 탈퇴 시 refresh token을 폐기한다.
   - 요청마다 하던 DB 조회 1회도 사라진다.
 
+### 적용 내용
+
+- `JwtAuthenticationFilter`는 서명과 만료만 검증하고, 토큰의 `userId`로 인증 객체를 만든다. `UserRepository` 의존성을 없앴다.
+- 탈퇴한 사용자의 토큰이 사용자 조회 API(마이페이지 등)에 오면, 예전에는 400 "사용자를 찾을 수 없습니다"였다. 이제 **401**(`AuthenticatedUserNotFoundException`)이라서 프론트가 세션을 정리할 수 있다.
+- **테스트:**
+  - DB가 죽은 상태에서 유효한 토큰으로 추천을 호출하면 200이고, 인증 과정에서 `UserRepository`를 한 번도 호출하지 않는다.
+  - 탈퇴 사용자의 토큰은 401이다.
+
+### 결과 (③)
+
+| 구간 | 추천 실패 | 로그인 실패 | 마이페이지 실패 | Tomcat 바쁜 스레드 |
+|---|---|---|---|---|
+| 정상 | 0% | 0% | 0% | 16 |
+| MySQL 중단 | **0%** | 98% (3초 안의 503) | 100% (3초 안의 503) | 22 |
+| 복구 후 | 0% | 8% (MySQL 기동 전 몇 초) | 1% | 22 |
+
+**MySQL이 멈춘 2분 동안에도 이미 로그인한 사용자는 AI 추천과 코스 추천을 계속 쓸 수 있었다.** 새로 로그인하거나 마이페이지를 보는 것만 안내 메시지(503)를 받는다.
+
 ## 5. 그래프
 
 | 실행 | 링크 |
 |---|---|
-| 개선 전 | `load-test/results/20261110-132840-openai-fault-db-stop-baseline.*` |
-| 개선 후 | `load-test/results/20261110-133434-openai-fault-db-stop-failfast.*` |
+| ① 개선 전 | `load-test/results/20261110-132840-openai-fault-db-stop-baseline.*` |
+| ② fail-fast | `load-test/results/20261110-133434-openai-fault-db-stop-failfast.*` |
+
+| ③ stateless 인증 | `load-test/results/20261110-134315-openai-fault-db-stop-stateless-auth.*` |
 
 캡처 추천 패널: "Threads"(170 vs 18), "Connections (HikariCP)", "Requests per second by status"(500 → 503).
 

@@ -1,8 +1,6 @@
 package com.meetingmate.app.security;
 
 import com.meetingmate.app.domain.user.User;
-import com.meetingmate.app.exception.DatabaseUnavailable;
-import com.meetingmate.app.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -22,7 +20,6 @@ import java.util.Arrays;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(
@@ -34,28 +31,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         if (StringUtils.hasText(token) && jwtProvider.validate(token)) {
+            // Stateless: the signed token is the proof of identity; no DB lookup per request.
+            // Before, findById ran on every request, so a MySQL outage also took down the
+            // recommendation endpoints that need no DB at all (MySQL stop test, 2026-11-10).
+            // Trade-off: a deleted account's token stays valid until it expires; endpoints
+            // that load the user answer 401 for it (UserService), and access tokens are short.
             Long userId = jwtProvider.getUserId(token);
-
-            java.util.Optional<User> found;
-            try {
-                found = userRepository.findById(userId);
-            } catch (RuntimeException e) {
-                // Exceptions thrown in a filter never reach @RestControllerAdvice and
-                // would become a generic 500, so answer the DB outage here.
-                if (DatabaseUnavailable.matches(e)) {
-                    logger.warn("Database unavailable during authentication: " + e);
-                    DatabaseUnavailable.write(response);
-                    return;
-                }
-                throw e;
-            }
-
-            found.ifPresent(user -> {
-                UserPrincipal principal = new UserPrincipal(user);
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            });
+            UserPrincipal principal = new UserPrincipal(User.builder().id(userId).build());
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
         filterChain.doFilter(request, response);
