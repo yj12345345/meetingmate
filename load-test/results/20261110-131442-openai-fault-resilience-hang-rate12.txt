@@ -1,0 +1,124 @@
+time="2026-11-10T04:14:48Z" level=info msg="[t0] 2026-11-10T04:14:48.459Z" source=console
+time="2026-11-10T04:15:48Z" level=info msg="[chaos] t=60s inject hang -> 201" source=console
+time="2026-11-10T04:17:48Z" level=info msg="[chaos] t=180s restore -> 200" source=console
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{name:login,phase:fault}
+    ✓ 'max>=0' max=144.02ms
+
+    http_req_duration{name:login,phase:normal}
+    ✓ 'max>=0' max=184.06ms
+
+    http_req_duration{name:login,phase:recovery}
+    ✓ 'max>=0' max=207.69ms
+
+    http_req_duration{name:recommend,phase:fault}
+    ✓ 'max>=0' max=20.03s
+
+    http_req_duration{name:recommend,phase:normal}
+    ✓ 'max>=0' max=11.08s
+
+    http_req_duration{name:recommend,phase:recovery}
+    ✓ 'max>=0' max=12.54s
+
+    http_req_duration{name:user_me,phase:fault}
+    ✓ 'max>=0' max=31.01ms
+
+    http_req_duration{name:user_me,phase:normal}
+    ✓ 'max>=0' max=48.82ms
+
+    http_req_duration{name:user_me,phase:recovery}
+    ✓ 'max>=0' max=35.21ms
+
+    http_req_failed{name:login,phase:fault}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:login,phase:normal}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:login,phase:recovery}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:recommend,phase:fault}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:recommend,phase:normal}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:recommend,phase:recovery}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:user_me,phase:fault}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:user_me,phase:normal}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{name:user_me,phase:recovery}
+    ✓ 'rate>=0' rate=0.00%
+
+    recommend_source{name:recommend,phase:fault}
+    ✓ 'count>=0' count=1429
+
+    recommend_source{name:recommend,phase:normal}
+    ✓ 'count>=0' count=677
+
+    recommend_source{name:recommend,phase:recovery}
+    ✓ 'count>=0' count=1444
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 4151    13.326673/s
+    checks_succeeded...: 100.00% 4151 out of 4151
+    checks_failed......: 0.00%   0 out of 4151
+
+    ✓ recommend 2xx
+    ✓ login 2xx
+    ✓ user_me 2xx
+
+    CUSTOM
+    recommend_source......................: 3550   11.397179/s
+      { name:recommend,phase:fault }......: 1429   4.587766/s
+      { name:recommend,phase:normal }.....: 677    2.17349/s
+      { name:recommend,phase:recovery }...: 1444   4.635923/s
+
+    HTTP
+    http_req_duration.....................: med=71.34ms  p(95)=5.53s    p(99)=20.01s   max=20.03s  
+      { expected_response:true }..........: med=71.36ms  p(95)=5.53s    p(99)=20.01s   max=20.03s  
+      { name:login,phase:fault }..........: med=116.51ms p(95)=124.16ms p(99)=134.12ms max=144.02ms
+      { name:login,phase:normal }.........: med=111.77ms p(95)=124.22ms p(99)=160.96ms max=184.06ms
+      { name:login,phase:recovery }.......: med=115.99ms p(95)=125.67ms p(99)=139.42ms max=207.69ms
+      { name:recommend,phase:fault }......: med=14.36ms  p(95)=20.01s   p(99)=20.02s   max=20.03s  
+      { name:recommend,phase:normal }.....: med=2.75s    p(95)=5.49s    p(99)=7.59s    max=11.08s  
+      { name:recommend,phase:recovery }...: med=2.32s    p(95)=5.37s    p(99)=7.01s    max=12.54s  
+      { name:user_me,phase:fault }........: med=16.95ms  p(95)=26.75ms  p(99)=29.33ms  max=31.01ms 
+      { name:user_me,phase:normal }.......: med=19.62ms  p(95)=39.29ms  p(99)=46.6ms   max=48.82ms 
+      { name:user_me,phase:recovery }.....: med=15.7ms   p(95)=28.51ms  p(99)=30.81ms  max=35.21ms 
+    http_req_failed.......................: 0.04%  2 out of 4235
+      { name:login,phase:fault }..........: 0.00%  0 out of 120
+      { name:login,phase:normal }.........: 0.00%  0 out of 60
+      { name:login,phase:recovery }.......: 0.00%  0 out of 121
+      { name:recommend,phase:fault }......: 0.00%  0 out of 1390
+      { name:recommend,phase:normal }.....: 0.00%  0 out of 719
+      { name:recommend,phase:recovery }...: 0.00%  0 out of 1441
+      { name:user_me,phase:fault }........: 0.00%  0 out of 120
+      { name:user_me,phase:normal }.......: 0.00%  0 out of 60
+      { name:user_me,phase:recovery }.....: 0.00%  0 out of 120
+    http_reqs.............................: 4235   13.596353/s
+
+    EXECUTION
+    dropped_iterations....................: 51     0.163734/s
+    iteration_duration....................: med=30.79ms  p(95)=5.58s    p(99)=20.01s   max=3m0s    
+    iterations............................: 4152   13.329884/s
+    vus...................................: 3      min=0         max=101
+    vus_max...............................: 112    min=61        max=112
+
+    NETWORK
+    data_received.........................: 21 MB  68 kB/s
+    data_sent.............................: 1.7 MB 5.4 kB/s
+
+
+

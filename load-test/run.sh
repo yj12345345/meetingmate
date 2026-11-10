@@ -16,8 +16,8 @@ mkdir -p load-test/results
 echo "k6 start: $(date -u +%FT%TZ)  (use this time range in Grafana)" | tee "${OUT}.meta"
 docker run --rm -i --network meetingmate-obs_default \
   -v "$PWD/load-test:/scripts" \
-  -e BASE_URL=http://backend:8080 -e PROFILE="$PROFILE" -e RUN_ID="$TS" -e USERS="${USERS:-60}" \
-  grafana/k6:1.3.0 run --quiet \
+  -e BASE_URL=http://backend:8080 -e PROFILE="$PROFILE" -e RUN_ID="$TS" -e USERS="${USERS:-60}" -e FAULT="${FAULT:-hang}" -e AI_RATE="${AI_RATE:-4}" \
+  grafana/k6:1.3.0 run --quiet --log-output=stdout \
   --summary-export "/scripts/results/${TS}-${SCENARIO}-${LABEL}.json" \
   "/scripts/${SCENARIO}.js" | tee "${OUT}.txt" || true
 echo "k6 end:   $(date -u +%FT%TZ)" | tee -a "${OUT}.meta"

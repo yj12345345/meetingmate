@@ -86,7 +86,10 @@ services:
   # Stage 2 changes its delay/fault settings to inject failures.
   openai-mock:
     image: wiremock/wiremock:3.13.1
-    command: ["--global-response-templating", "--no-request-journal"]
+    # Async responses: delayed (fault-injected) replies must not tie up WireMock's own
+    # threads, otherwise the mock - not the backend - becomes the bottleneck.
+    command: ["--global-response-templating", "--no-request-journal",
+              "--async-response-enabled=true", "--async-response-threads=100", "--container-threads=400"]
     volumes:
       - ./observability/openai-mock/mappings:/home/wiremock/mappings:ro
     ports:

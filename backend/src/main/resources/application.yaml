@@ -60,6 +60,10 @@ meetingmate:
 
 openai:
   base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+  # Measured locally: mock p99 ~8s. Real responses (large JSON) can be slower, so 20s
+  # leaves headroom; tune from production access logs (durationMs per request).
+  connect-timeout: ${OPENAI_CONNECT_TIMEOUT:2s}
+  call-timeout: ${OPENAI_CALL_TIMEOUT:20s}
   model: ${OPENAI_MODEL:gpt-4o-mini}
 
 # --- Observability ---------------------------------------------------------

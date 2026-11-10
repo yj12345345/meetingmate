@@ -117,4 +117,16 @@ class RecommendationServiceTest {
         assertThat(result.getCategories()).hasSize(3);
         assertThat(result.getRoutes()).isNotEmpty();
     }
+
+    @Test
+    void AI_실패_시_내부_예외_메시지를_사용자에게_노출하지_않는다() {
+        when(openAiClient.recommendKeywords(anyString()))
+                .thenThrow(new IllegalStateException("OpenAI 추천 호출에 실패했습니다. Did not observe any item within 20000ms"));
+
+        KeywordRecommendResult result = recommendationService.recommendByKeyword("홍대", null, null, "홍대", null);
+
+        assertThat(result.getSource()).isEqualTo("FALLBACK");
+        assertThat(result.getWarning()).isEqualTo(RecommendationService.AI_FALLBACK_WARNING);
+        assertThat(result.getWarning()).doesNotContain("20000ms");
+    }
 }

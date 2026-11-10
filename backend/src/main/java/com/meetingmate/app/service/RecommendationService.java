@@ -11,6 +11,7 @@ import com.meetingmate.app.dto.recommendation.SelectedRouteRecommendRequest;
 import com.meetingmate.app.dto.recommendation.SelectedRouteRecommendResult;
 import com.meetingmate.app.service.openai.OpenAiClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,9 +25,14 @@ import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecommendationService {
+
+    // Shown to users when AI fails. Internal exception messages (timeouts, stack details)
+    // used to be returned verbatim in `warning`; they now go to the server log only.
+    static final String AI_FALLBACK_WARNING = "AI 추천이 일시적으로 원활하지 않아 기본 코스를 보여드립니다.";
 
     private static final int CATEGORY_PLACE_TARGET = 3;
     private static final List<String> DEFAULT_CATEGORY_ORDER = List.of("RESTAURANT", "CAFE", "ACTIVITY");
@@ -124,7 +130,8 @@ public class RecommendationService {
                 return buildResult(aiResult, "AI", null);
             }
         } catch (RuntimeException exception) {
-            warning = exception.getMessage();
+            log.warn("OpenAI recommendation failed, serving fallback: {}", exception.toString());
+            warning = AI_FALLBACK_WARNING;
         }
 
         return buildResult(
@@ -171,7 +178,8 @@ public class RecommendationService {
                         .build();
             }
         } catch (RuntimeException exception) {
-            warning = exception.getMessage();
+            log.warn("OpenAI recommendation failed, serving fallback: {}", exception.toString());
+            warning = AI_FALLBACK_WARNING;
         }
 
         return SelectedRouteRecommendResult.builder()

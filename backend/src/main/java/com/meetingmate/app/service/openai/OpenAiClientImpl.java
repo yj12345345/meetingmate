@@ -8,26 +8,75 @@ import com.meetingmate.app.dto.recommendation.KeywordRecommendResult;
 import com.meetingmate.app.dto.recommendation.KeywordRecommendRoute;
 import com.meetingmate.app.dto.recommendation.KeywordRecommendRouteStep;
 import com.meetingmate.app.dto.recommendation.PlaceRecommendResponse;
+import io.github.resilience4j.bulkhead.Bulkhead;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.retry.Retry;
+import io.netty.channel.ChannelOption;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
+
+import java.time.Duration;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @Component
 public class OpenAiClientImpl implements OpenAiClient {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final WebClient webClient;
+    private final Duration callTimeout;
+    private final Bulkhead bulkhead;
+    private final CircuitBreaker circuitBreaker;
+    private final Retry retry;
 
-    // Base URL is configurable so the local load-test stack can point at a mock
-    // server instead of the paid OpenAI API. Production keeps the default.
-    public OpenAiClientImpl(@Value("${openai.base-url:https://api.openai.com/v1}") String baseUrl) {
-        this.webClient = WebClient.create(baseUrl);
+    /**
+     * Base URL is configurable so the local load-test stack can point at a mock instead
+     * of the paid OpenAI API (production keeps the default).
+     *
+     * <p>Timeouts: without them a hung upstream blocked a Tomcat thread forever in
+     * {@code block()}. In the fault-injection test all 200 Tomcat threads ended up
+     * waiting on OpenAI and login/my-page went down too, even after OpenAI recovered.
+     * <ul>
+     *   <li>connect timeout: fail fast when the host is unreachable</li>
+     *   <li>call timeout: upper bound for the whole call (headers + body); on expiry
+     *       the subscription is cancelled, which also frees the pooled connection</li>
+     * </ul>
+     *
+     * <p>Connection pool: Reactor Netty's default pool is only 16 connections (2 CPUs);
+     * beyond that calls queued inside the client. It is sized to the bulkhead limit so
+     * the bulkhead, not a hidden pool queue, decides how many calls run at once.
+     */
+    public OpenAiClientImpl(@Value("${openai.base-url:https://api.openai.com/v1}") String baseUrl,
+                            @Value("${openai.connect-timeout:2s}") Duration connectTimeout,
+                            @Value("${openai.call-timeout:20s}") Duration callTimeout,
+                            @Value("${openai.max-concurrent-calls:100}") int maxConcurrentCalls,
+                            Bulkhead openAiBulkhead,
+                            CircuitBreaker openAiCircuitBreaker,
+                            Retry openAiRetry) {
+        ConnectionProvider pool = ConnectionProvider.builder("openai")
+                .maxConnections(maxConcurrentCalls)
+                .pendingAcquireTimeout(Duration.ofSeconds(2))
+                .build();
+        HttpClient httpClient = HttpClient.create(pool)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) connectTimeout.toMillis())
+                .responseTimeout(callTimeout);
+        this.webClient = WebClient.builder()
+                .baseUrl(baseUrl)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .build();
+        this.callTimeout = callTimeout;
+        this.bulkhead = openAiBulkhead;
+        this.circuitBreaker = openAiCircuitBreaker;
+        this.retry = openAiRetry;
     }
 
     @Value("${meetingmate.openai-api-key}")
@@ -188,13 +237,18 @@ public class OpenAiClientImpl implements OpenAiClient {
                     )
             );
 
-            String response = webClient.post()
+            Supplier<String> call = () -> webClient.post()
                     .uri("/chat/completions")
                     .header("Authorization", "Bearer " + apiKey)
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(String.class)
+                    .timeout(callTimeout)
                     .block();
+            // CircuitBreaker( Retry( Bulkhead( call ) ) ): see OpenAiResilienceConfig
+            String response = CircuitBreaker.decorateSupplier(circuitBreaker,
+                    Retry.decorateSupplier(retry,
+                            Bulkhead.decorateSupplier(bulkhead, call))).get();
 
             JsonNode root = objectMapper.readTree(response);
             String content = root.path("choices")
