@@ -1,6 +1,7 @@
 package com.meetingmate.app.config;
 
 import com.meetingmate.app.repository.UserRepository;
+import com.meetingmate.app.security.ApiAuthenticationEntryPoint;
 import com.meetingmate.app.security.CustomOAuth2UserService;
 import com.meetingmate.app.security.JwtAuthenticationFilter;
 import com.meetingmate.app.security.JwtProvider;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
@@ -83,6 +85,12 @@ public class SecurityConfig {
                         )
                         .successHandler(oAuth2SuccessHandler)
                 )
+
+                // /api/** 미인증 요청은 /login 리다이렉트(302) 대신 401 JSON
+                .exceptionHandling(ex -> ex.defaultAuthenticationEntryPointFor(
+                        new ApiAuthenticationEntryPoint(),
+                        PathPatternRequestMatcher.pathPattern("/api/**")
+                ))
 
                 // JWT 필터를 Security 앞단에
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
