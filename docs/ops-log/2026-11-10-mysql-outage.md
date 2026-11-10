@@ -71,11 +71,11 @@
 |---|---|
 | `spring.datasource.hikari.connection-timeout` 30초 → **3초** | 정상일 때 커넥션 대기는 평균 0.1ms(1단계 측정)이므로 3초면 충분하다. 장애 때 요청을 오래 붙잡지 않는다 |
 | DB 연결 실패 계열 예외 → **503 + `Retry-After: 30`** (`DatabaseUnavailable`) | 의존성 장애와 코드 버그를 구분한다. 클라이언트에게 다시 시도하면 될 수 있다고 알린다 |
-| **JWT 필터 안에서** DB 장애를 직접 503으로 응답 | 필터에서 던진 예외는 `@RestControllerAdvice`에 닿지 않고 일반 500이 된다 |
+| **JWT 필터 안에서** DB 장애를 직접 503으로 응답 (②) | 필터에서 던진 예외는 `@RestControllerAdvice`에 닿지 않고 일반 500이 된다. **③에서 필터가 DB를 조회하지 않게 되면서 이 처리는 코드에서 제거됐다** |
 | readiness 헬스체크에 `db` 포함, liveness에는 미포함 | readiness는 "트래픽을 받아도 되는가", liveness는 "재시작해야 하는가"를 뜻한다. DB 장애로 앱을 재시작해도 해결되지 않고 재시작만 반복하므로 liveness에서는 뺐다. 지금은 EC2 한 대에 Nginx만 있어서 이 값을 쓰는 로드밸런서가 없다. 외부 모니터링이나 향후 확장을 위한 설정이다 |
 | DB 장애 로그는 스택 트레이스 없이 WARN 한 줄 | 장애 중에는 모든 요청이 여기를 지나간다. 스택 트레이스 수백 개가 로그를 덮지 않게 했다 |
 
-**테스트:** `DatabaseUnavailableIntegrationTest`로 JWT 필터 경로와 컨트롤러 경로 모두 503 + Retry-After를 고정했다.
+**테스트:** `DatabaseUnavailableIntegrationTest`로 503 + Retry-After를 고정했다. ②에서는 JWT 필터 경로와 컨트롤러 경로를 검사했다. ③ 이후 현재 테스트는 "DB가 죽어도 추천은 200이고 인증이 DB를 부르지 않음"과 "컨트롤러 경로는 503"을 검사한다.
 
 ## 4. 인증의 DB 의존 제거 (stateless JWT 인증) — 적용함
 

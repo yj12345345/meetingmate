@@ -5,6 +5,10 @@
 - 도구: k6 1.3.0, Prometheus + Grafana, MySQL slow query log / `performance_schema` / `EXPLAIN ANALYZE`
 - 서비스 흐름: 개인 사용자가 조건(지역·모임 유형·분위기·일정)을 입력한다 → AI가 장소를 추천한다 → 카카오맵으로 확인한다 → 마음에 드는 장소를 골라 AI 코스 추천을 받는다
 
+> **이후 코드 변경 (2026-11-10)** — 이 문서는 측정 당시 코드 기준이다.
+> - 추천 API가 OpenAI 호출 전에 하던 DB 조회(`place_candidate` 키워드 검색)는 `ad0008f`에서 제거됐다. JWT 필터의 사용자 조회도 `2e7fdef`에서 없어졌다. **그래서 현재 추천 경로는 DB 커넥션을 잡지 않고, 이 문서의 병목은 같은 조건으로는 재현되지 않는다.** `open-in-view: false`는 "외부 호출 전에 DB를 조회하는 코드"가 다시 생길 때를 막는 장치로 유지한다.
+> - 부록 B의 N+1 수정 코드(`PlaceService.getPlaces`, `PlaceVoteRepository.countGroupedByPlaceIds`)와 테스트는 미사용 모임/장소 API와 함께 `ad0008f`에서 삭제됐다. 인덱스는 엔티티에 그대로 남아 있다.
+
 ## 1. 문제
 
 사용자 60명이 실제 화면 흐름(로그인 → 조건 입력 추천 → 결과 확인 → 선택 장소 코스 추천 → 마이페이지)을 반복하자,
