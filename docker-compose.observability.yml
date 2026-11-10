@@ -58,6 +58,10 @@ services:
       SPRING_DATASOURCE_USERNAME: meetingmate
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env.observability}
+      # Shorten in experiments, e.g. JWT_ACCESS_TOKEN_EXPIRY_MS=60000 to reproduce token expiry.
+      JWT_ACCESS_TOKEN_EXPIRY_MS: ${JWT_ACCESS_TOKEN_EXPIRY_MS:-900000}
+      # Local stack is plain http, so the refresh cookie cannot be Secure here.
+      REFRESH_COOKIE_SECURE: "false"
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID:-local-dummy}
       KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:-local-dummy}
       # Never call the paid OpenAI API from the load-test stack: point at the mock.

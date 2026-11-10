@@ -86,6 +86,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(ApiResponse.fail("UNAUTHORIZED", "인증이 필요합니다."));
     }
 
+    @ExceptionHandler(com.meetingmate.app.auth.InvalidRefreshTokenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidRefreshToken(com.meetingmate.app.auth.InvalidRefreshTokenException e) {
+        log.info("Refresh rejected: {}", e.getMessage());
+        // Clear the (useless) cookie so the browser stops sending it.
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .header(HttpHeaders.SET_COOKIE, org.springframework.http.ResponseCookie.from(
+                        com.meetingmate.app.auth.RefreshTokenCookie.NAME, "").path("/api/auth").maxAge(0).build().toString())
+                .body(ApiResponse.fail("REFRESH_TOKEN_INVALID", "다시 로그인해 주세요."));
+    }
+
     @ExceptionHandler(AuthenticatedUserNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleAuthenticatedUserNotFound(AuthenticatedUserNotFoundException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

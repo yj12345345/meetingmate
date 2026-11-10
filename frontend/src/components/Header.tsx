@@ -1,12 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
 import Button from "./Button";
+import { logoutRemote } from "../api/auth";
+import { clearAccessToken } from "../utils/auth";
 
 export default function Header() {
     const navigate = useNavigate();
     const isLoggedIn = !!localStorage.getItem("accessToken");
 
-    const logout = () => {
-        localStorage.removeItem("accessToken");
+    const logout = async () => {
+        await logoutRemote(); // revoke the refresh token too, not just forget the access token
+        clearAccessToken();
         navigate("/home");
     };
 

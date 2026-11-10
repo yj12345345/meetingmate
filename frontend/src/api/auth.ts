@@ -20,3 +20,12 @@ export const loginLocal = async (payload: {
     const res = await http.post<ApiResponse<LoginPayload>>("/api/auth/login", payload);
     return res.data.data.accessToken;
 };
+
+/** Revokes this login's refresh token on the server and clears the cookie. Best effort. */
+export const logoutRemote = async () => {
+    try {
+        await http.post("/api/auth/logout");
+    } catch {
+        // Logging out locally must work even if the server is unreachable.
+    }
+};

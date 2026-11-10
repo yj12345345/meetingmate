@@ -30,6 +30,7 @@ public class UserService {
     private final AvailabilitySlotRepository availabilitySlotRepository;
     private final PlaceCandidateRepository placeCandidateRepository;
     private final PlaceVoteRepository placeVoteRepository;
+    private final com.meetingmate.app.auth.RefreshTokenService refreshTokenService;
 
     @Transactional(readOnly = true)
     public UserMeResponse getMyInfo(Long userId) {
@@ -64,7 +65,10 @@ public class UserService {
         deletePlacesAndVotes(placeCandidateRepository.findByCreatedBy(userId));
         placeCandidateRepository.deleteByCreatedBy(userId);
 
-        // 4) 사용자 삭제
+        // 4) 모든 기기의 refresh token 폐기: 남은 access token(최대 15분) 이후로는 아무도 재발급받지 못함
+        refreshTokenService.revokeAllForUser(userId);
+
+        // 5) 사용자 삭제
         userRepository.delete(user);
     }
 

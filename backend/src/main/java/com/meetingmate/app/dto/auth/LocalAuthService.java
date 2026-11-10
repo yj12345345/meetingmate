@@ -3,7 +3,6 @@ package com.meetingmate.app.dto.auth;
 import com.meetingmate.app.domain.user.AuthProvider;
 import com.meetingmate.app.domain.user.User;
 import com.meetingmate.app.repository.UserRepository;
-import com.meetingmate.app.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,6 @@ public class LocalAuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtProvider jwtProvider; // ⭐ 기존 JWT 클래스
 
     public void signup(LocalSignupRequest req) {
         if (userRepository.existsByEmailAndProvider(req.getEmail(), AuthProvider.LOCAL)) {
@@ -31,7 +29,8 @@ public class LocalAuthService {
         userRepository.save(user);
     }
 
-    public TokenResponse login(LocalLoginRequest req) {
+    /** Verifies email/password and returns the user id; tokens are issued by the caller. */
+    public Long authenticate(LocalLoginRequest req) {
         User user = userRepository
                 .findByEmailAndProvider(req.getEmail(), AuthProvider.LOCAL)
                 .orElseThrow(() -> new IllegalArgumentException("로그인 실패"));
@@ -40,9 +39,6 @@ public class LocalAuthService {
             throw new IllegalArgumentException("로그인 실패");
         }
 
-        // ⭐ 기존 OAuth 로그인과 동일한 JWT 발급
-        String token = jwtProvider.createAccessToken(user.getId());
-
-        return new TokenResponse(token);
+        return user.getId();
     }
 }
