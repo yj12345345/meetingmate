@@ -70,25 +70,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         };
     }
 
-    // ---- Domain exceptions ----
-
-    @ExceptionHandler(GroupNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleGroupNotFound() {
-        ErrorCode ec = ErrorCode.GROUP_NOT_FOUND;
-        return ResponseEntity.status(ec.getStatus()).body(ec.toResponse());
-    }
-
-    @ExceptionHandler(GroupAccessDeniedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAccessDenied() {
-        ErrorCode ec = ErrorCode.GROUP_ACCESS_DENIED;
-        return ResponseEntity.status(ec.getStatus()).body(ec.toResponse());
-    }
-
-    @ExceptionHandler(PlaceVoteException.class)
-    public ResponseEntity<ApiResponse<Void>> handlePlaceVoteException(PlaceVoteException e) {
-        ErrorCode ec = e.getErrorCode();
-        return ResponseEntity.status(ec.getStatus()).body(ec.toResponse());
-    }
+    // ---- Domain / security exceptions ----
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Void>> handleSpringAccessDenied(AccessDeniedException e) {

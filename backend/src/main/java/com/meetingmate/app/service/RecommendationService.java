@@ -1,6 +1,5 @@
 package com.meetingmate.app.service;
 
-import com.meetingmate.app.domain.place.PlaceCandidate;
 import com.meetingmate.app.dto.recommendation.KeywordRecommendCategory;
 import com.meetingmate.app.dto.recommendation.KeywordRecommendResponse;
 import com.meetingmate.app.dto.recommendation.KeywordRecommendResult;
@@ -10,7 +9,6 @@ import com.meetingmate.app.dto.recommendation.PlaceRecommendRequest;
 import com.meetingmate.app.dto.recommendation.PlaceRecommendResponse;
 import com.meetingmate.app.dto.recommendation.SelectedRouteRecommendRequest;
 import com.meetingmate.app.dto.recommendation.SelectedRouteRecommendResult;
-import com.meetingmate.app.repository.PlaceCandidateRepository;
 import com.meetingmate.app.service.openai.OpenAiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -59,7 +57,6 @@ public class RecommendationService {
     );
 
     private final OpenAiClient openAiClient;
-    private final PlaceCandidateRepository placeCandidateRepository;
 
     // MVP용 메모리 캐시
     private final Map<String, List<PlaceRecommendResponse>> cache = new HashMap<>();
@@ -111,13 +108,11 @@ public class RecommendationService {
 
         String area = resolveAreaForPrompt(location, keyword, planHint, normalizedKeyword);
         List<String> requestedCategories = resolveRequestedCategories(planHint);
-        List<PlaceCandidate> dbMatches =
-                placeCandidateRepository.findTop5ByNameContainingIgnoreCaseOrderByIdDesc(normalizedKeyword);
 
         String warning = null;
         try {
             KeywordRecommendResult aiResult = normalizeKeywordResult(
-                    openAiClient.recommendKeywords(buildKeywordPrompt(normalizedKeyword, meetingType, mood, area, planHint, requestedCategories, dbMatches)),
+                    openAiClient.recommendKeywords(buildKeywordPrompt(normalizedKeyword, meetingType, mood, area, planHint, requestedCategories)),
                     normalizedKeyword,
                     meetingType,
                     mood,
@@ -130,14 +125,6 @@ public class RecommendationService {
             }
         } catch (RuntimeException exception) {
             warning = exception.getMessage();
-        }
-
-        if (!dbMatches.isEmpty()) {
-            return buildResult(
-                    buildDbKeywordResult(dbMatches, normalizedKeyword, meetingType, mood, area, requestedCategories),
-                    "DB",
-                    warning == null ? "AI 추천 대신 기존 후보 데이터를 바탕으로 코스를 구성했습니다." : warning
-            );
         }
 
         return buildResult(
@@ -211,14 +198,8 @@ public class RecommendationService {
             String mood,
             String area,
             String planHint,
-            List<String> requestedCategories,
-            List<PlaceCandidate> dbMatches
+            List<String> requestedCategories
     ) {
-        String knownCandidates = dbMatches.isEmpty()
-                ? "없음"
-                : dbMatches.stream()
-                .map(place -> "- %s [%s]".formatted(place.getName(), categoryTitle(normalizeCategoryKey(place.getCategory()))))
-                .collect(Collectors.joining("\n"));
         String requestedCategorySummary = requestedCategories.stream()
                 .map(categoryKey -> "%s(%s)".formatted(categoryKey, categoryTitle(categoryKey)))
                 .collect(Collectors.joining(", "));
@@ -232,9 +213,6 @@ public class RecommendationService {
                 - Highest-priority concrete flow / menu / style / exclusions: %s
                 - Requested category keys in order: %s
 
-                Internal candidate data from the app:
-                %s
-
                 Instructions:
                 1. Recommend only the requested category keys and keep the exact order.
                 2. For each category, return 3 real venues when possible. If fewer than 3 truly high-confidence venues exist, return 2 instead of guessing.
@@ -247,26 +225,24 @@ public class RecommendationService {
                 9. Never invent a venue, never invent a branch name, and never use a generic label as if it were a real venue.
                 10. Absolutely avoid vague names such as "Sinchon Korean restaurant", "Jamsil roastery cafe", "props street", or "VR experience center".
                 11. If you are not highly confident a venue is real, do not output it.
-                12. If internal candidate data exists, reuse those exact names first when they are relevant.
-                13. Prefer famous, searchable, high-confidence real places over creative or obscure guesses.
-                14. The name, address, and mapQuery must point to the same real venue.
-                15. The address must be a concrete South Korean address, not just district/dong-level text.
-                16. mapQuery must be optimized for Kakao Map search using the official place name plus dong/gu.
-                17. If a requested category key is KARAOKE, return only real karaoke venues such as coin karaoke rooms. Do not replace it with cafes or generic activities.
-                18. If a requested category key is SHOPPING, return only real shopping places such as malls, department stores, select shops, bookstores, markets, or shopping streets. Do not replace it with cafes or generic activities.
-                19. Routes must reuse only venues already present in categories. Do not create new venues inside routes.
-                20. All explanatory text should be natural Korean, concise, and free of awkward line breaks.
-                21. Treat Preferred area as a hard geographic anchor. Keep all venues inside that area or immediately adjacent neighborhoods (walk/taxi short distance).
-                22. Never jump to a different city/province. For example, if the area is 성수/신촌/잠실, do not output venues from 김천/대구/부산 or other far cities.
-                23. If area confidence is low, return fewer venues instead of filling with distant guesses.
+                12. Prefer famous, searchable, high-confidence real places over creative or obscure guesses.
+                13. The name, address, and mapQuery must point to the same real venue.
+                14. The address must be a concrete South Korean address, not just district/dong-level text.
+                15. mapQuery must be optimized for Kakao Map search using the official place name plus dong/gu.
+                16. If a requested category key is KARAOKE, return only real karaoke venues such as coin karaoke rooms. Do not replace it with cafes or generic activities.
+                17. If a requested category key is SHOPPING, return only real shopping places such as malls, department stores, select shops, bookstores, markets, or shopping streets. Do not replace it with cafes or generic activities.
+                18. Routes must reuse only venues already present in categories. Do not create new venues inside routes.
+                19. All explanatory text should be natural Korean, concise, and free of awkward line breaks.
+                20. Treat Preferred area as a hard geographic anchor. Keep all venues inside that area or immediately adjacent neighborhoods (walk/taxi short distance).
+                21. Never jump to a different city/province. For example, if the area is 성수/신촌/잠실, do not output venues from 김천/대구/부산 or other far cities.
+                22. If area confidence is low, return fewer venues instead of filling with distant guesses.
                 """.formatted(
                 keyword,
                 valueOrDefault(meetingType, "미정"),
                 valueOrDefault(mood, "미정"),
                 valueOrDefault(area, keyword),
                 valueOrDefault(planHint, "없음"),
-                requestedCategorySummary,
-                knownCandidates
+                requestedCategorySummary
         );
     }
 
@@ -586,54 +562,6 @@ public class RecommendationService {
         }
 
         return routes.stream().limit(3).toList();
-    }
-
-    private KeywordRecommendResult buildDbKeywordResult(
-            List<PlaceCandidate> dbMatches,
-            String keyword,
-            String meetingType,
-            String mood,
-            String area,
-            List<String> requestedCategories
-    ) {
-        Map<String, List<KeywordRecommendResponse>> bucketed = new LinkedHashMap<>();
-        requestedCategories.forEach(category -> bucketed.put(category, new ArrayList<>()));
-
-        for (PlaceCandidate place : dbMatches) {
-            String categoryKey = normalizeCategoryKey(place.getCategory());
-            if (!bucketed.containsKey(categoryKey)) {
-                categoryKey = inferCategoryKey(place.getName(), place.getCategory());
-            }
-            if (!bucketed.containsKey(categoryKey)) {
-                continue;
-            }
-
-            bucketed.get(categoryKey).add(
-                    KeywordRecommendResponse.builder()
-                            .category(categoryKey)
-                            .name(place.getName())
-                            .address(buildAreaAddress(area, keyword))
-                            .reason("내부 후보 데이터에서 찾은 장소입니다.")
-                            .tags(defaultTags(categoryKey, mood))
-                            .mapQuery(buildMapQuery(place.getName(), buildAreaAddress(area, keyword), area, categoryKey))
-                            .build()
-            );
-        }
-
-        List<KeywordRecommendCategory> categories = requestedCategories.stream()
-                .map(categoryKey -> KeywordRecommendCategory.builder()
-                        .key(categoryKey)
-                        .title(categoryTitle(categoryKey))
-                        .description(defaultCategoryDescription(categoryKey, meetingType, mood))
-                        .places(completeCategoryPlaces(categoryKey, bucketed.get(categoryKey), keyword, meetingType, mood, area))
-                        .build())
-                .toList();
-
-        return KeywordRecommendResult.builder()
-                .categories(categories)
-                .routes(buildFallbackRoutes(categories, meetingType, mood))
-                .recommendations(flattenRecommendations(categories))
-                .build();
     }
 
     private KeywordRecommendResult buildFallbackKeywordResult(
